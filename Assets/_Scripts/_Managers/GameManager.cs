@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public enum GameState
@@ -11,6 +12,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    [SerializeField]
+    private GameObject joystickUI;
     public Vector2 joystickDir { get; set; } = Vector2.zero; // 플레이어의 이동 방향 설정.
 
     public GameState CurrentState { get; private set; } // 현재 게임 상태.
@@ -48,15 +51,20 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("새로운 판 시작!");
 
+        // 배틀 포인트 초기화.
         currentBP = STARTING_BP;
 
+        // 플레이어 데이터 초기화.
         if (playerData != null)
         {
             playerData.InitializeForNewRun();
         }
 
-        //UIManager.instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
+        // UI 업데이트.
         UIManager.instance.UpdateBP(currentBP);
+        UIManager.instance.UpdateExp(playerData.currentExp, playerData.maxExp);
+        UIManager.instance.UpdateLevel(playerData.level);
+        UIManager.instance.UpdateMoney(playerData.currentGold);
 
         ChangeGameState(GameState.World);
     }
@@ -67,20 +75,22 @@ public class GameManager : MonoBehaviour
         CurrentState = newState;
         Debug.Log($"게임 상태 변경 -> {newState}");
 
-        switch(CurrentState)
+        Time.timeScale = 1f;
+
+        switch (CurrentState)
         {
             case GameState.World:
-                // TODO: 인게임 HUD UI 활성화
-                // TODO: 조이스틱 활성화
+                joystickUI.SetActive(true);
                 break;
 
             case GameState.Battle:
-                // TODO: 조이스틱 비활성화
-                // TODO: 전투 UI 활성화
+                joystickUI.SetActive(false);
+                Time.timeScale = 0f;
+                BattleManager.instance.StartBattle();
                 break;
 
             case GameState.Menu:
-                // TODO: 조이스틱 비활성화
+                joystickUI.SetActive(false);
                 // TODO: 메인 메뉴 UI 활성화
                 break;
         }
@@ -130,7 +140,6 @@ public class GameManager : MonoBehaviour
 
         // 전투 시작 로직 호출.
         ChangeGameState(GameState.Battle);
-        BattleManager.instance.StartBattle();
     }
 
     // 전투 종료.
@@ -140,7 +149,7 @@ public class GameManager : MonoBehaviour
 
         // BP 차감.
         currentBP--;
-        //UIManager.instance.UpdateBP(currentBP);
+        UIManager.instance.UpdateBP(currentBP);
 
         if (playerWin)
         {
@@ -154,13 +163,13 @@ public class GameManager : MonoBehaviour
 
         if (currentBP <= 0)
         {
-            //EndRun(); // BP가 0이면 판 종료
+            EndRun(); // BP가 0이면 판 종료
         }
         else
         {
             // 게임 상태를 다시 '월드'로 전환
+            //UIManager.instance.HideBattleUI();
             ChangeGameState(GameState.World);
-            // UIManager.Instance.HideBattleUI();
         }
     }
 

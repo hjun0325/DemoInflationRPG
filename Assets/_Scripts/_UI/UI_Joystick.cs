@@ -22,6 +22,17 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         Visual.SetActive(false);
     }
 
+    // 해당 오브젝트가 비활성화 될 때 호출된다.
+    private void OnDisable()
+    {
+        // 커서를 해당 위치로 이동. (커서를 중앙에 두기 위해서)
+        cursor.transform.position = touchPos;
+
+        GameManager.instance.joystickDir = Vector2.zero;
+
+        Visual.SetActive(false);
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         Visual.SetActive(true);
@@ -34,12 +45,7 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        // 커서를 해당 위치로 이동. (커서를 중앙에 두기 위해서)
-        cursor.transform.position = touchPos;
-
-        GameManager.instance.joystickDir = Vector2.zero;
-
-        Visual.SetActive(false);
+        OnDisable();
     }
 
     public void OnDrag(PointerEventData eventData)

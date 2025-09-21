@@ -14,6 +14,8 @@ public class BattleManager : MonoBehaviour
     private int monsterDEF = 1;
     //private int monsterAGI = 5;
 
+    private UniTaskCompletionSource<bool> resultCompletionSource;
+
     private void Awake()
     {
         if (instance == null)
@@ -40,8 +42,8 @@ public class BattleManager : MonoBehaviour
         // TODO: MapManager로부터 실제 몬스터 데이터 받아와 스탯 설정
         monsterCurrentHP = monsterMaxHP;
 
-        //UIManager.instance.ShowBattleUI(playerData, monsterCurrentHP, monsterMaxHP);
-        await UniTask.Delay(1000); // 전투 시작 연출.
+        UIManager.instance.ShowBattleUI(playerData, monsterCurrentHP, monsterMaxHP);
+        await UniTask.Delay(1000, DelayType.UnscaledDeltaTime); // 전투 시작 연출.
 
         // -- 전투 루프 시작 --
         while (playerData.currentHp > 0 && monsterCurrentHP > 0)
@@ -54,16 +56,33 @@ public class BattleManager : MonoBehaviour
             await ExecuteMonsterTurnAsync();
             if (playerData.currentHp <= 0) break;
 
-            await UniTask.Delay(1000); // 턴 사이 간격.
+            await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 턴 사이 간격.
         }
 
         // -- 전투 종료 --
         bool playerWin = playerData.currentHp > 0;
-        //UIManager.instance.ShowResultUI(playerWin);
+        if (playerWin)
+        {
+            UIManager.instance.HideBattleUI();
+            UIManager.instance.ShowResultUI();
 
-        // TODO: 승리 시 보상 계산
+            // UIManager가 신호를 줄 때까지 여기서 무한정 대기
+            resultCompletionSource = new UniTaskCompletionSource<bool>();
+            await resultCompletionSource.Task;
+        }
+        else
+        {
+
+        }
 
         GameManager.instance.EndBattle(playerWin);
+    }
+
+    // UIManager가 결과 창 닫기 신호를 보내면 호출될 함수
+    public void ProceedAfterResult()
+    {
+        // 대기 중인 BattleRoutineAsync를 깨움
+        resultCompletionSource?.TrySetResult(true);
     }
 
     // 플레이어 턴.
@@ -75,9 +94,9 @@ public class BattleManager : MonoBehaviour
         // [공격] - 추후 실제 데미지 공식 적용.
         int damage = Mathf.Max(1, playerData.atk - monsterDEF);
         monsterCurrentHP -= damage;
-        //UIManager.instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
+        UIManager.instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
         Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
-        await UniTask.Delay(500); // 타격 연출 시간.
+        await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
 
         // [연쇄 공격 루프] - 추후 구현.
         /*while(Random.Range(0f,1f)< chainAttackChance)
@@ -94,8 +113,8 @@ public class BattleManager : MonoBehaviour
         // [공격] - 추후 실제 데미지 공식 적용.
         int damage = Mathf.Max(1, monsterATK - playerData.def);
         playerData.currentHp -= damage;
-        //UIManager.instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
+        UIManager.instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
         Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
-        await UniTask.Delay(500); // 타격 연출 시간.
+        await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }
 }
