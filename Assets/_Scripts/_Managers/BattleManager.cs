@@ -1,6 +1,12 @@
 using UnityEngine;
 using Cysharp.Threading.Tasks; // UniTask 사용을 위해 필요
 
+public struct BattleResult
+{
+    public long gainedExp;
+    public long gainedGold;
+}
+
 public class BattleManager : MonoBehaviour
 {
     public static BattleManager instance;
@@ -60,16 +66,39 @@ public class BattleManager : MonoBehaviour
         }
 
         // -- 전투 종료 --
+
+        // 승리 판별 후 체력 회복.
         bool playerWin = playerData.currentHp > 0;
+        playerData.currentHp = playerData.maxHp;
+
+        // 승리 시
         if (playerWin)
         {
+            // 추후 몬스터 드랍 보상 데이터로 교체.
+            BattleResult result = new BattleResult();
+            result.gainedExp = 3000;
+            result.gainedGold = 1500;
+
+            // 연출 전 상태 저장
+            long startMoney = playerData.currentGold;
+            long startExp = playerData.currentExp;
+            long maxExp = playerData.maxExp;
+            int startLevel = playerData.level;
+
+            playerData.AddExperience(result.gainedExp);
+            playerData.currentGold += result.gainedGold;
+
             UIManager.instance.HideBattleUI();
             UIManager.instance.ShowResultUI();
 
-            // UIManager가 신호를 줄 때까지 여기서 무한정 대기
+            // UI 연출 종료 대기.
+            await UIManager.instance.PlayRewardAnimationAsync(startMoney, result.gainedGold, startExp, result.gainedExp, maxExp, startLevel);
+
+            // 플레이어 터치 대기.
             resultCompletionSource = new UniTaskCompletionSource<bool>();
             await resultCompletionSource.Task;
         }
+        // 패배 시
         else
         {
 

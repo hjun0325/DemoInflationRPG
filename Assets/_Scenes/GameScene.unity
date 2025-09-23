@@ -1607,7 +1607,6 @@ GameObject:
   - component: {fileID: 734334007}
   - component: {fileID: 734334006}
   - component: {fileID: 734334005}
-  - component: {fileID: 734334009}
   m_Layer: 5
   m_Name: Result UI
   m_TagString: Untagged
@@ -1699,35 +1698,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &734334009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 734334004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Delegates:
-  - eventID: 2
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1341499514}
-          m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-          m_MethodName: OnClick_CloseResultPanel
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1 &746645963
 GameObject:
   m_ObjectHideFlags: 0
@@ -4280,6 +4250,8 @@ MonoBehaviour:
   playerHPText: {fileID: 2015159647}
   battleLogText: {fileID: 636203723}
   resultUI: {fileID: 734334004}
+  ButtonPanel: {fileID: 2027048720}
+  resultCanvasGroup: {fileID: 0}
   currentMoneyText: {fileID: 1124752941}
   plusMoneyText: {fileID: 14409071}
   resultExpSlider: {fileID: 1820730092}
@@ -6159,6 +6131,7 @@ GameObject:
   - component: {fileID: 2027048721}
   - component: {fileID: 2027048723}
   - component: {fileID: 2027048722}
+  - component: {fileID: 2027048725}
   m_Layer: 5
   m_Name: Button Panel
   m_TagString: Untagged
@@ -6223,6 +6196,35 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2027048720}
   m_CullTransparentMesh: 1
+--- !u!114 &2027048725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2027048720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 2
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1341499514}
+          m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+          m_MethodName: OnClick_CloseResultPanel
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &2088774608
 GameObject:
   m_ObjectHideFlags: 0

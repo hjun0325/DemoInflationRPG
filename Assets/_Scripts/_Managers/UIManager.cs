@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Cysharp.Threading.Tasks;
 
 public class UIManager : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class UIManager : MonoBehaviour
 
     [Header("Result UI")]
     [SerializeField] private GameObject resultUI;
+    [SerializeField] private GameObject ButtonPanel;
+    //[SerializeField] private CanvasGroup resultCanvasGroup;
     [SerializeField] private TMP_Text currentMoneyText;
     [SerializeField] private TMP_Text plusMoneyText;
     [SerializeField] private Slider resultExpSlider;
@@ -43,6 +46,80 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public async UniTask PlayRewardAnimationAsync(long startMoney, long gainedMoney, long startExp, long gainedExp, long maxExp, long currentLevel)
+    {
+        // 두 개의 Task를 각각 생성하고 시작.
+        var goldTask = PlayGoldAnimationAsync(startMoney, gainedMoney);
+        var expTask = PlayExpAnimationAsync(startExp, gainedExp, maxExp, currentLevel);
+
+        // UniTask.WhenAll을 통해 두 Task가 모두 끝날 때까지 기다림
+        await UniTask.WhenAll(goldTask, expTask);
+
+        Debug.Log("모든 보상 연출 완료!");
+        ButtonPanel.SetActive(true);
+        //resultCanvasGroup.interactable = true;
+    }
+
+    // 골드 보상 연출용 비동기 함수.
+    private async UniTask PlayGoldAnimationAsync(long startMoney, long gainedMoney)
+    {
+        float goldAnimDuration = 2.0f; // 골드 연출 시간
+        float timer = 0f;
+        plusMoneyText.text = $"+ {gainedMoney:N0}";
+
+        while (timer < goldAnimDuration)
+        {
+            timer += Time.unscaledDeltaTime;
+            float progress = timer / goldAnimDuration;
+            long currentGainedMoney = (long)Mathf.Lerp(0, gainedMoney, progress);
+            long remainingMoney = gainedMoney - currentGainedMoney;
+
+            currentMoneyText.text = (startMoney + currentGainedMoney).ToString("N0");
+            plusMoneyText.text = $"+ {remainingMoney:N0}";
+            await UniTask.Yield();
+        }
+        // 최종값 보정
+        currentMoneyText.text = (startMoney + gainedMoney).ToString("N0");
+        plusMoneyText.text = "+0";
+    }
+
+    // 경험치 보상 연출용 비동기 함수.
+    private async UniTask PlayExpAnimationAsync(long startExp, long gainedExp, long maxExp, long currentLevel)
+    {
+        long remainingExp = gainedExp;
+        long currentDisplayExp = startExp;
+        long maxDisplayExp = maxExp;
+        long currentDisplayLevel = currentLevel;
+        float tickSpeed = 0.01f;
+
+        resultExpSlider.maxValue = maxDisplayExp;
+        resultExpSlider.value = currentDisplayExp;
+
+        while (remainingExp > 0)
+        {
+            long expToAdd = (long)(maxDisplayExp * 0.1f);
+            if (expToAdd == 0) expToAdd = 1;
+            expToAdd = (long)Mathf.Min(expToAdd, remainingExp);
+
+            currentDisplayExp += expToAdd;
+            remainingExp -= expToAdd;
+            resultExpSlider.value = currentDisplayExp;
+            plusExpText.text = $"+ {remainingExp:N0}";
+            
+            if (currentDisplayExp >= maxDisplayExp)
+            {
+                currentDisplayLevel++;
+                currentDisplayExp -= maxDisplayExp;
+                maxDisplayExp = (long)(3 + Mathf.Pow(currentDisplayLevel, 1.5f) * 0.5f);
+                resultExpSlider.value = 0; // 바 초기화.
+                resultExpSlider.maxValue = maxDisplayExp;
+                await UniTask.Delay(100, DelayType.UnscaledDeltaTime);
+            }
+            await UniTask.Delay((int)(tickSpeed * 500), DelayType.UnscaledDeltaTime);
+        }
+        resultExpSlider.value = currentDisplayExp; // 최종값 보정
+    }
+
     public void ShowBattleUI(PlayerData player, int current, int max /*MonsterData monster*/)
     {
         battleUI.SetActive(true);
@@ -58,7 +135,9 @@ public class UIManager : MonoBehaviour
 
     public void ShowResultUI()
     {
-        resultUI.SetActive(true); 
+        resultUI.SetActive(true);
+        ButtonPanel.SetActive(false);
+        //resultCanvasGroup.interactable = false;
     }
 
     public void OnClick_CloseResultPanel()
