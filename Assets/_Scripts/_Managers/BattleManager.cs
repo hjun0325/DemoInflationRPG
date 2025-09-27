@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks; // UniTask 사용을 위해 필요
 
 public struct BattleResult
 {
+    public bool playerWin;
     public long gainedExp;
     public long gainedGold;
 }
@@ -12,13 +13,19 @@ public class BattleManager : MonoBehaviour
     public static BattleManager instance;
 
     private PlayerData playerData;
+    private MonsterData currentMonsterData;
 
-    // 임시 몬스터 데이터 (실제로는 MonsterData와 레벨로 생성)
+    // 플레이어 최종 스탯.
+    private int playerFinalATK, playerFinalDEF, playerFinalAGI, playerFinalLUC;
+
+    // 몬스터 최종 스탯.
+    private int monsterFinalATK, monsterFinalDEF, monsterFinalAGI;
+    private int monsterMaxHP;
     private int monsterCurrentHP;
-    private int monsterMaxHP = 10;
-    private int monsterATK = 7;
-    private int monsterDEF = 1;
-    //private int monsterAGI = 5;
+
+    // 데미지 계산에 사용될 유효한 스탯.
+    private long playerEffectiveDEF;
+    private long monsterEffectiveATK;
 
     private UniTaskCompletionSource<bool> resultCompletionSource;
 
@@ -41,14 +48,39 @@ public class BattleManager : MonoBehaviour
         BattleRoutineAsync().Forget();
     }
 
+    // UIManager가 결과 창 닫기 신호를 보내면 호출될 함수
+    public void ProceedAfterResult()
+    {
+        // 대기 중인 BattleRoutineAsync를 깨움
+        resultCompletionSource?.TrySetResult(true);
+    }
+
     private async UniTask BattleRoutineAsync()
     {
         // -- 전투 준비 단계 --
         playerData = FindAnyObjectByType<PlayerData>();
         // TODO: MapManager로부터 실제 몬스터 데이터 받아와 스탯 설정
+        currentMonsterData = MapManager.instance.GetRandomMonsterFromZone();
+
+        // [플레이어 최종 스탯 계산]
+        // TODO: 장비 보너스 합산
+        playerFinalATK = playerData.atk;
+        playerFinalDEF = playerData.def;
+        playerFinalAGI = playerData.agi;
+        playerFinalLUC = playerData.luc;
+
+        // [몬스터 최종 스탯 계산]
+        monsterFinalATK = currentMonsterData.atk;
+        monsterFinalDEF = currentMonsterData.def;
+        monsterFinalAGI = currentMonsterData.agi;
+        monsterMaxHP = currentMonsterData.hp;
         monsterCurrentHP = monsterMaxHP;
 
-        UIManager.instance.ShowBattleUI(playerData, monsterCurrentHP, monsterMaxHP);
+        // 데미지 계산용 유효 스탯 계산
+        playerEffectiveDEF = (long)(7 * Mathf.Sqrt(playerFinalDEF));
+        monsterEffectiveATK = (long)(7 * Mathf.Sqrt(monsterFinalATK));
+
+        UIManager.instance.ShowBattleUI(playerData, currentMonsterData, monsterMaxHP);
         await UniTask.Delay(1000, DelayType.UnscaledDeltaTime); // 전투 시작 연출.
 
         // -- 전투 루프 시작 --
@@ -69,24 +101,20 @@ public class BattleManager : MonoBehaviour
 
         // 승리 판별 후 체력 회복.
         bool playerWin = playerData.currentHp > 0;
-        playerData.currentHp = playerData.maxHp;
+        BattleResult result = new BattleResult { playerWin = playerWin };
 
         // 승리 시
         if (playerWin)
         {
-            // 추후 몬스터 드랍 보상 데이터로 교체.
-            BattleResult result = new BattleResult();
-            result.gainedExp = 3000;
-            result.gainedGold = 1500;
+            // 보상 계산.
+            result.gainedExp = currentMonsterData.dropExp;
+            result.gainedGold = currentMonsterData.dropGold;
 
             // 연출 전 상태 저장
             long startMoney = playerData.currentGold;
             long startExp = playerData.currentExp;
             long maxExp = playerData.maxExp;
             int startLevel = playerData.level;
-
-            playerData.AddExperience(result.gainedExp);
-            playerData.currentGold += result.gainedGold;
 
             UIManager.instance.HideBattleUI();
             UIManager.instance.ShowResultUI();
@@ -101,37 +129,39 @@ public class BattleManager : MonoBehaviour
         // 패배 시
         else
         {
-
+            UIManager.instance.HideBattleUI();
         }
 
-        GameManager.instance.EndBattle(playerWin);
-    }
-
-    // UIManager가 결과 창 닫기 신호를 보내면 호출될 함수
-    public void ProceedAfterResult()
-    {
-        // 대기 중인 BattleRoutineAsync를 깨움
-        resultCompletionSource?.TrySetResult(true);
+        GameManager.instance.EndBattle(result);
     }
 
     // 플레이어 턴.
     private async UniTask ExecutePlayerTurnAsync()
     {
         Debug.Log("플레이어 턴 시작");
-        // TODO: AGI 기반 연쇄 공격 확률 계산
-
-        // [공격] - 추후 실제 데미지 공식 적용.
-        int damage = Mathf.Max(1, playerData.atk - monsterDEF);
-        monsterCurrentHP -= damage;
-        UIManager.instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
-        Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
-        await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
-
-        // [연쇄 공격 루프] - 추후 구현.
-        /*while(Random.Range(0f,1f)< chainAttackChance)
+        while (true)
         {
+            // 데미지 계산
+            float critChance = ((playerFinalAGI * 0.05f) + (playerFinalLUC * 0.1f)) / 100f;
+            bool isCritical = Random.Range(0f, 1f) < critChance;
 
-        }*/
+            float reductionRate = 0.3f * (monsterFinalDEF / (float)(monsterFinalDEF + playerFinalATK));
+            long damage = (long)(playerFinalATK * (1 - reductionRate));
+            if (isCritical) damage = (long)(damage * 1.5f);
+            damage = (long)Mathf.Max(1, damage);
+
+            monsterCurrentHP -= (int)damage;
+            UIManager.instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
+            Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
+
+            await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
+            if (monsterCurrentHP <= 0) break;
+
+            // 연쇄 공격 판정.
+            float agiAdvantage = (float)playerFinalAGI / (playerFinalAGI + monsterFinalAGI);
+            float nextAttackChance = 0.7f * Mathf.Max(0, (agiAdvantage - 0.5f) * 2);
+            if (Random.Range(0f, 1f) >= nextAttackChance) break;
+        }
     }
 
     // 몬스터 턴.
@@ -139,9 +169,11 @@ public class BattleManager : MonoBehaviour
     {
         Debug.Log("몬스터 턴 시작");
 
-        // [공격] - 추후 실제 데미지 공식 적용.
-        int damage = Mathf.Max(1, monsterATK - playerData.def);
-        playerData.currentHp -= damage;
+        float reductionRate = 0.3f * (playerEffectiveDEF / (float)(playerEffectiveDEF + monsterEffectiveATK));
+        long damage = (long)(monsterEffectiveATK * (1 - reductionRate));
+        damage = (long)Mathf.Max(1, damage);
+
+        playerData.currentHp -= (int)damage;
         UIManager.instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
         Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.

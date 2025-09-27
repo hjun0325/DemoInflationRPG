@@ -17,6 +17,7 @@ public class UIManager : MonoBehaviour
     [Header("Battle UI")]
     [SerializeField] private GameObject battleUI;
     [SerializeField] private Slider monsterHPSlider;
+    [SerializeField] private Image monsterImage;
     [SerializeField] private Slider playerHPSlider;
     [SerializeField] private TMP_Text playerHPText;
     [SerializeField] private TMP_Text battleLogText;
@@ -103,7 +104,10 @@ public class UIManager : MonoBehaviour
 
             currentDisplayExp += expToAdd;
             remainingExp -= expToAdd;
+
+            // UI 업데이트.
             resultExpSlider.value = currentDisplayExp;
+            expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
             plusExpText.text = $"+ {remainingExp:N0}";
             
             if (currentDisplayExp >= maxDisplayExp)
@@ -118,14 +122,16 @@ public class UIManager : MonoBehaviour
             await UniTask.Delay((int)(tickSpeed * 500), DelayType.UnscaledDeltaTime);
         }
         resultExpSlider.value = currentDisplayExp; // 최종값 보정
+        expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
     }
 
-    public void ShowBattleUI(PlayerData player, int current, int max /*MonsterData monster*/)
+    public void ShowBattleUI(PlayerData player, MonsterData monster, int monsterMaxHP)
     {
         battleUI.SetActive(true);
 
+        monsterImage.sprite = monster.monsterIcon;
         UpdatePlayerHP(player.currentHp, player.maxHp);
-        UpdateMonsterHP(current, max);
+        UpdateMonsterHP(monsterMaxHP, monsterMaxHP);
     }
 
     public void HideBattleUI()
@@ -152,7 +158,7 @@ public class UIManager : MonoBehaviour
     {
         playerHPSlider.maxValue = max;
         playerHPSlider.value = current;
-        playerHPText.text = $"{current} / {max}";
+        playerHPText.text = $"{current}/{max}";
     }
 
     public void UpdateMonsterHP(int current, int max)

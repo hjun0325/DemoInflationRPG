@@ -143,23 +143,32 @@ public class GameManager : MonoBehaviour
     }
 
     // 전투 종료.
-    public void EndBattle(bool playerWin)
+    public void EndBattle(BattleResult result)
     {
         Debug.Log("전투 종료!");
 
         // BP 차감.
         currentBP--;
-        UIManager.instance.UpdateBP(currentBP);
 
-        if (playerWin)
+        if (result.playerWin)
         {
             Debug.Log("플레이어가 이겼습니다!");
-            // TODO: 보상 적용
+            Debug.Log($"보상 적용: 경험치 {result.gainedExp}, 골드 {result.gainedGold}");
+
+            playerData.HealToFull();
+            playerData.AddGold(result.gainedGold);
+            playerData.AddExperience(result.gainedExp);
         }
         else
         {
-            // TODO: 패배 처리
+            int penaltyCost = 3;
+            currentBP -= penaltyCost;
+            Debug.Log($"패배하여 BP {penaltyCost}를 잃었습니다!");
+
+            playerData.HealToFull();
         }
+
+        UIManager.instance.UpdateBP(currentBP);
 
         if (currentBP <= 0)
         {
@@ -168,7 +177,6 @@ public class GameManager : MonoBehaviour
         else
         {
             // 게임 상태를 다시 '월드'로 전환
-            //UIManager.instance.HideBattleUI();
             ChangeGameState(GameState.World);
         }
     }

@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerData : MonoBehaviour
@@ -34,13 +33,27 @@ public class PlayerData : MonoBehaviour
         maxHp = 100;
         currentHp = maxHp;
 
-        atk = 5;
+        atk = 1;
         def = 5;
-        agi = 5;
-        luc = 5;
+        agi = 3;
+        luc = 3;
 
         unspentStatPoints = 0;
         currentGold = 0;
+    }
+    //  체력 회복 함수.
+    public void HealToFull()
+    {
+        currentHp = maxHp;
+        UIManager.instance.UpdatePlayerHP(currentHp, maxHp);
+    }
+
+    // 골드 추가 함수.
+    public void AddGold(long amount)
+    {
+        if (amount <= 0) return;
+        currentGold += amount;
+        UIManager.instance.UpdateMoney(currentGold);
     }
 
     // 경험치 추가 함수.
@@ -51,6 +64,9 @@ public class PlayerData : MonoBehaviour
         {
             LevelUp();
         }
+
+        UIManager.instance.UpdateExp(currentExp, maxExp);
+        UIManager.instance.UpdateLevel(level);
     }
 
     // 레벨업 함수.
