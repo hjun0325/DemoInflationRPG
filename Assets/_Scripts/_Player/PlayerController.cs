@@ -4,8 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    private float moveSpeed = 3;
+    [SerializeField] private float moveSpeed = 3;
 
     private Animator animator;
     private CharacterController characterController;
@@ -22,14 +21,14 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         // 조이스틱 방향을 가져와 이동 벡터 생성.
-        Vector2 dir = GameManager.instance.joystickDir;
+        Vector2 dir = GameManager.Instance.JoystickDir;
         moveDir = new Vector3(dir.x, dir.y, 0);
 
         // 움직임이 있는 경우.
         if (moveDir != Vector3.zero)
         {
             // 인카운터 게이지를 올리도록 보고.
-            GameManager.instance.AddEncounterValue();
+            GameManager.Instance.AddEncounterValue();
 
             animator.SetBool("isMoving", true);
 

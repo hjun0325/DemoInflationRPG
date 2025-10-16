@@ -1,11 +1,14 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using Cysharp.Threading.Tasks;
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    public static UIManager instance;
+    public static UIManager Instance;
+
+    [SerializeField] public GameObject JoystickUI;
 
     [Header("InGame UI")]
     [SerializeField] private Slider encounterGaugeSlider;
@@ -13,6 +16,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text moneyText;
     [SerializeField] private TMP_Text bpText;
     [SerializeField] private Slider expSlider;
+    [SerializeField] private Button MenuButton;
 
     [Header("Battle UI")]
     [SerializeField] private GameObject battleUI;
@@ -24,8 +28,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Result UI")]
     [SerializeField] private GameObject resultUI;
-    [SerializeField] private GameObject ButtonPanel;
-    //[SerializeField] private CanvasGroup resultCanvasGroup;
+    [SerializeField] private Button closeResultButton;
     [SerializeField] private TMP_Text currentMoneyText;
     [SerializeField] private TMP_Text plusMoneyText;
     [SerializeField] private Slider resultExpSlider;
@@ -33,20 +36,31 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text plusExpText;
     [SerializeField] private TMP_Text ResultLogText;
 
+    [Header("Menu UI")]
+    [SerializeField] private GameObject menuUI;
+    [SerializeField] private GameObject menuPanel;
+    [SerializeField] private UI_StatusPanel statusPanel;
+    [SerializeField] private UI_EquipmentPanel equipmentPanel;
+    [SerializeField] private UI_StorePanel weaponStorePanel;
+    [SerializeField] private UI_StorePanel armorStorePanel;
+    [SerializeField] private UI_StorePanel accessaryStorePanel;
+
+    [Header("Gameover UI")]
+    [SerializeField] private GameObject gameoverUI;
 
     private void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 파괴되지 않음.
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
+    private void Start()
+    {
+        /*MenuButton?.onClick.AddListener(OnClick_ShowMenuPanel);
+        closeResultButton?.onClick.AddListener(OnClick_CloseResultPanel);*/
+    }
+
+    // 보상 연출용 비동기 함수.
     public async UniTask PlayRewardAnimationAsync(long startMoney, long gainedMoney, long startExp, long gainedExp, long maxExp, long currentLevel)
     {
         // 두 개의 Task를 각각 생성하고 시작.
@@ -57,8 +71,7 @@ public class UIManager : MonoBehaviour
         await UniTask.WhenAll(goldTask, expTask);
 
         Debug.Log("모든 보상 연출 완료!");
-        ButtonPanel.SetActive(true);
-        //resultCanvasGroup.interactable = true;
+        closeResultButton.interactable = true;
     }
 
     // 골드 보상 연출용 비동기 함수.
@@ -142,8 +155,59 @@ public class UIManager : MonoBehaviour
     public void ShowResultUI()
     {
         resultUI.SetActive(true);
-        ButtonPanel.SetActive(false);
-        //resultCanvasGroup.interactable = false;
+        closeResultButton.interactable = false;
+    }
+
+    public void ShowGameoverUI()
+    {
+        gameoverUI.SetActive(true);
+    }
+
+    public void OnClick_LoadMainMenuScene()
+    {
+        SceneManager.LoadScene("MainMenuScene");
+    }
+    public void OnClick_ShowMenuPanel()
+    {
+        menuUI.SetActive(true);
+        menuPanel.SetActive(true);
+        GameManager.Instance.ChangeGameState(GameState.Menu);
+    }
+
+    public void OnClick_HideMenuPanel()
+    {
+        menuPanel.SetActive(false);
+        menuUI.SetActive(false);
+        GameManager.Instance.ChangeGameState(GameState.World);
+    }
+
+    public void OnClick_ShowStatusPanel()
+    {
+        var playerData = FindAnyObjectByType<PlayerData>();
+        if (playerData == null) return;
+
+        statusPanel.Show();
+        statusPanel.Init(playerData);
+    }
+
+    public void OnClick_ShowEquipmentPanel()
+    {
+        equipmentPanel.Show();
+    }
+
+    public void OnClick_ShowWeaponStorePanel()
+    {
+        weaponStorePanel.Show();
+    }
+
+    public void OnClick_ShowArmorStorePanel()
+    {
+        armorStorePanel.Show();
+    }
+
+    public void OnClick_ShowAccessaryStorePanel()
+    {
+        accessaryStorePanel.Show();
     }
 
     public void OnClick_CloseResultPanel()
@@ -151,7 +215,7 @@ public class UIManager : MonoBehaviour
         resultUI.SetActive(false);
 
         // 보상이 끝났다고 BattleManager에 알림
-        BattleManager.instance.ProceedAfterResult();
+        BattleManager.Instance.ProceedAfterResult();
     }
 
     public void UpdatePlayerHP(int current, int max)

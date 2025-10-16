@@ -2,22 +2,17 @@ using UnityEngine;
 
 public class MapManager : MonoBehaviour
 {
-    public static MapManager instance;
+    public static MapManager Instance;
 
-    // 현재 구역 정보를 저장할 변수.
-    [SerializeField] private ZoneData currentZone;
+    [SerializeField] private ZoneData defaultZone;
+    private ZoneData currentZone;
 
     private void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 파괴되지 않음.
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        currentZone = defaultZone;
     }
 
     // 현재 구역의 몬스터 중 하나를 무작위로 반환.

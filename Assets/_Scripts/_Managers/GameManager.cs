@@ -1,5 +1,5 @@
-using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum GameState
 {
@@ -10,29 +10,28 @@ public enum GameState
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance;
+    public static GameManager Instance { get; private set; }
 
-    [SerializeField]
-    private GameObject joystickUI;
-    public Vector2 joystickDir { get; set; } = Vector2.zero; // 플레이어의 이동 방향 설정.
+    public Vector2 JoystickDir { get; set; } = Vector2.zero; // 플레이어의 이동 방향 설정.
+    public GameState CurrentState { get; private set; }
+    public PlayerData PlayerData { get; private set; }
 
-    public GameState CurrentState { get; private set; } // 현재 게임 상태.
-    private PlayerData playerData;
+    // --- BP ---
+    public int currentBP { get; private set; }
+    [SerializeField] private int startingBP = 10;
 
-    public int currentBP; // 현재 배틀 포인트를 저장할 변수
-    private const int STARTING_BP = 30; // 시작 BP를 상수로 정의
-
-    [Header("Encounter System")]
-    public float encounterGauge;
-    private float maxGauge = 100f;
-    private float increaseRate = 20f;
+    // --- EncounterGauge ---
+    private float encounterCurrentGauge;
+    [SerializeField] private float encounterMaxGauge = 100f;
+    [SerializeField] private float increaseRate = 20f;
 
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 파괴되지 않음.
+            SceneManager.sceneLoaded += OnSceneLoaded; // 씬 로드시, OnSceneLoaded 함수 호출
         }
         else
         {
@@ -40,31 +39,41 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void OnDestroy()
     {
-        playerData = FindAnyObjectByType<PlayerData>();
-        StartNewRun();
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // 새로운 판을 시작하는 메인 함수.
-    public void StartNewRun()
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log("새로운 판 시작!");
+        if (scene.name != "GameScene") return;
 
-        // 배틀 포인트 초기화.
-        currentBP = STARTING_BP;
-
-        // 플레이어 데이터 초기화.
-        if (playerData != null)
+        PlayerData = FindAnyObjectByType<PlayerData>();
+        if(PlayerData == null )
         {
-            playerData.InitializeForNewRun();
+            Debug.LogError("GameScene에 PlayerData가 없습니다!");
+            return;
+        }
+
+        SessionData sessionData = DataManager.Instance.saveData.currentSessionData;
+        if (sessionData != null)
+        {
+            // 세션 데이터가 있으면 -> '이어하기'
+            PlayerData.ApplySessionData(sessionData);
+            currentBP = sessionData.currentBP;
+        }
+        else
+        {
+            // 세션 데이터가 없으면 -> '새로운 판'
+            PlayerData.InitializeForNewRun();
+            currentBP = startingBP;
         }
 
         // UI 업데이트.
-        UIManager.instance.UpdateBP(currentBP);
-        UIManager.instance.UpdateExp(playerData.currentExp, playerData.maxExp);
-        UIManager.instance.UpdateLevel(playerData.level);
-        UIManager.instance.UpdateMoney(playerData.currentGold);
+        UIManager.Instance.UpdateBP(currentBP);
+        UIManager.Instance.UpdateExp(PlayerData.currentExp, PlayerData.maxExp);
+        UIManager.Instance.UpdateLevel(PlayerData.level);
+        UIManager.Instance.UpdateMoney(PlayerData.currentGold);
 
         ChangeGameState(GameState.World);
     }
@@ -75,23 +84,22 @@ public class GameManager : MonoBehaviour
         CurrentState = newState;
         Debug.Log($"게임 상태 변경 -> {newState}");
 
-        Time.timeScale = 1f;
-
         switch (CurrentState)
         {
             case GameState.World:
-                joystickUI.SetActive(true);
+                UIManager.Instance.JoystickUI.SetActive(true);
+                Time.timeScale = 1f;
                 break;
 
             case GameState.Battle:
-                joystickUI.SetActive(false);
+                UIManager.Instance.JoystickUI.SetActive(false);
                 Time.timeScale = 0f;
-                BattleManager.instance.StartBattle();
+                BattleManager.Instance.StartBattle();
                 break;
 
             case GameState.Menu:
-                joystickUI.SetActive(false);
-                // TODO: 메인 메뉴 UI 활성화
+                UIManager.Instance.JoystickUI.SetActive(false);
+                Time.timeScale = 1f;
                 break;
         }
     }
@@ -100,13 +108,13 @@ public class GameManager : MonoBehaviour
     public void AddEncounterValue()
     {
         // 이동하는 동안 게이지를 증가 시킴.
-        encounterGauge += increaseRate * Time.deltaTime;
+        encounterCurrentGauge += increaseRate * Time.deltaTime;
 
         // 게이지가 최대치가 넘지 않도록.
-        encounterGauge = Mathf.Clamp(encounterGauge, 0, maxGauge);
+        encounterCurrentGauge = Mathf.Clamp(encounterCurrentGauge, 0, encounterMaxGauge);
 
         // UIManager에 게이지 UI 업데이트 요청.
-        UIManager.instance.UpdateEncounterGauge(encounterGauge, maxGauge);
+        UIManager.Instance.UpdateEncounterGauge(encounterCurrentGauge, encounterMaxGauge);
 
         // 몬스터를 만날지 확률 체크.
         CheckForEncounter();
@@ -115,7 +123,7 @@ public class GameManager : MonoBehaviour
     // 인카운터 체크.
     private void CheckForEncounter()
     {
-        if (encounterGauge >= maxGauge)
+        if (encounterCurrentGauge >= encounterMaxGauge)
         {
             Debug.Log("게이지 100%! 몬스터와 전투!");
             StartEncounter(); // 전투 시작.
@@ -123,7 +131,7 @@ public class GameManager : MonoBehaviour
         }
 
         // 게이지가 높을수록 만날 확률 증가.
-        float encounterChance = encounterGauge / maxGauge;
+        float encounterChance = encounterCurrentGauge / encounterMaxGauge;
 
         // 매 프레임 확률을 체크. (deltaTime으로 보정).
         if (Random.Range(0f, 1f) < encounterChance * Time.deltaTime)
@@ -136,7 +144,7 @@ public class GameManager : MonoBehaviour
     // 인카운터 발생.
     private void StartEncounter()
     {
-        encounterGauge = 0f; // 게이지 초기화.
+        encounterCurrentGauge = 0f; // 게이지 초기화.
 
         // 전투 시작 로직 호출.
         ChangeGameState(GameState.Battle);
@@ -155,20 +163,21 @@ public class GameManager : MonoBehaviour
             Debug.Log("플레이어가 이겼습니다!");
             Debug.Log($"보상 적용: 경험치 {result.gainedExp}, 골드 {result.gainedGold}");
 
-            playerData.HealToFull();
-            playerData.AddGold(result.gainedGold);
-            playerData.AddExperience(result.gainedExp);
+            PlayerData.HealToFull();
+            PlayerData.AddGold(result.gainedGold);
+            PlayerData.AddExperience(result.gainedExp);
         }
         else
         {
-            int penaltyCost = 3;
+            int penaltyCost = 2;
             currentBP -= penaltyCost;
             Debug.Log($"패배하여 BP {penaltyCost}를 잃었습니다!");
 
-            playerData.HealToFull();
+            PlayerData.HealToFull();
         }
 
-        UIManager.instance.UpdateBP(currentBP);
+        DataManager.Instance.SaveGame();
+        UIManager.Instance.UpdateBP(currentBP);
 
         if (currentBP <= 0)
         {
@@ -184,6 +193,12 @@ public class GameManager : MonoBehaviour
     public void EndRun()
     {
         Debug.Log("게임 오버! BP를 모두 소진했습니다.");
-        // TODO: 게임 오버 UI 표시 및 장비 계승 로직
+        // TODO: PlayerData의 장비 목록을 DataManager의 ownedItemIDs에 추가
+
+        // 세션 데이터 삭제 및 영구 데이터 저장.
+        DataManager.Instance.ClearSessionData();
+        DataManager.Instance.SaveGame();
+
+        SceneManager.LoadScene("MainMenuScene");
     }
 }

@@ -10,7 +10,7 @@ public struct BattleResult
 
 public class BattleManager : MonoBehaviour
 {
-    public static BattleManager instance;
+    public static BattleManager Instance;
 
     private PlayerData playerData;
     private MonsterData currentMonsterData;
@@ -31,15 +31,8 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 파괴되지 않음.
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     public void StartBattle()
@@ -60,7 +53,7 @@ public class BattleManager : MonoBehaviour
         // -- 전투 준비 단계 --
         playerData = FindAnyObjectByType<PlayerData>();
         // TODO: MapManager로부터 실제 몬스터 데이터 받아와 스탯 설정
-        currentMonsterData = MapManager.instance.GetRandomMonsterFromZone();
+        currentMonsterData = MapManager.Instance.GetRandomMonsterFromZone();
 
         // [플레이어 최종 스탯 계산]
         // TODO: 장비 보너스 합산
@@ -80,7 +73,7 @@ public class BattleManager : MonoBehaviour
         playerEffectiveDEF = (long)(7 * Mathf.Sqrt(playerFinalDEF));
         monsterEffectiveATK = (long)(7 * Mathf.Sqrt(monsterFinalATK));
 
-        UIManager.instance.ShowBattleUI(playerData, currentMonsterData, monsterMaxHP);
+        UIManager.Instance.ShowBattleUI(playerData, currentMonsterData, monsterMaxHP);
         await UniTask.Delay(1000, DelayType.UnscaledDeltaTime); // 전투 시작 연출.
 
         // -- 전투 루프 시작 --
@@ -94,7 +87,7 @@ public class BattleManager : MonoBehaviour
             await ExecuteMonsterTurnAsync();
             if (playerData.currentHp <= 0) break;
 
-            await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 턴 사이 간격.
+            await UniTask.Delay(200, DelayType.UnscaledDeltaTime); // 턴 사이 간격.
         }
 
         // -- 전투 종료 --
@@ -116,11 +109,11 @@ public class BattleManager : MonoBehaviour
             long maxExp = playerData.maxExp;
             int startLevel = playerData.level;
 
-            UIManager.instance.HideBattleUI();
-            UIManager.instance.ShowResultUI();
+            UIManager.Instance.HideBattleUI();
+            UIManager.Instance.ShowResultUI();
 
             // UI 연출 종료 대기.
-            await UIManager.instance.PlayRewardAnimationAsync(startMoney, result.gainedGold, startExp, result.gainedExp, maxExp, startLevel);
+            await UIManager.Instance.PlayRewardAnimationAsync(startMoney, result.gainedGold, startExp, result.gainedExp, maxExp, startLevel);
 
             // 플레이어 터치 대기.
             resultCompletionSource = new UniTaskCompletionSource<bool>();
@@ -129,10 +122,10 @@ public class BattleManager : MonoBehaviour
         // 패배 시
         else
         {
-            UIManager.instance.HideBattleUI();
+            UIManager.Instance.HideBattleUI();
         }
 
-        GameManager.instance.EndBattle(result);
+        GameManager.Instance.EndBattle(result);
     }
 
     // 플레이어 턴.
@@ -151,7 +144,7 @@ public class BattleManager : MonoBehaviour
             damage = (long)Mathf.Max(1, damage);
 
             monsterCurrentHP -= (int)damage;
-            UIManager.instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
+            UIManager.Instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
             Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
 
             await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
@@ -174,7 +167,7 @@ public class BattleManager : MonoBehaviour
         damage = (long)Mathf.Max(1, damage);
 
         playerData.currentHp -= (int)damage;
-        UIManager.instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
+        UIManager.Instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
         Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }

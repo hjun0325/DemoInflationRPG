@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2819915e078b1947a2e01cbd7321da3, type: 3}
+  m_Name: 4_GunOak 3
+  m_EditorClassIdentifier: 
+  monsterID: 12
+  monsterName: GunOak2
+  monsterIcon: {fileID: 21300000, guid: b99f19bc8755d0141831a7f9c7729da9, type: 3}
+  hp: 2700
+  atk: 440
+  def: 170
+  agi: 35
+  dropExp: 180
+  dropGold: 320

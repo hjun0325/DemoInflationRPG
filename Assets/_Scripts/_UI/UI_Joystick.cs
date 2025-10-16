@@ -28,7 +28,7 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         // 커서를 해당 위치로 이동. (커서를 중앙에 두기 위해서)
         cursor.transform.position = touchPos;
 
-        GameManager.instance.joystickDir = Vector2.zero;
+        GameManager.Instance.JoystickDir = Vector2.zero;
 
         Visual.SetActive(false);
     }
@@ -59,6 +59,6 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         cursor.transform.position = newPosition;
 
         // 플레이어의 방향을 게임 매니저에 넘겨준다.
-        GameManager.instance.joystickDir = moveDir;
+        GameManager.Instance.JoystickDir = moveDir;
     }
 }

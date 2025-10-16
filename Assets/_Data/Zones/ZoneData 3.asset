@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32eb7bee2890ff04da91b2990fcc674f, type: 3}
+  m_Name: ZoneData 3
+  m_EditorClassIdentifier: 
+  ZoneName: 3
+  recommendedLevel: 72
+  appearingMonsters:
+  - {fileID: 11400000, guid: 5c55fc1ce2f9c86419a5e482169602e2, type: 2}
+  - {fileID: 11400000, guid: dd5ad10cccd696345baf921e94360ce0, type: 2}
+  - {fileID: 11400000, guid: 590b47ac6dea16440919b068ba14917b, type: 2}

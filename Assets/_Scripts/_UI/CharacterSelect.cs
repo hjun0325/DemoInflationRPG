@@ -11,6 +11,7 @@ public class CharacterSelect : MonoBehaviour
         if (CharacterSelectCanvas == null) return;
 
         CharacterSelectCanvas.SetActive(false);
+        DataManager.Instance.ClearSessionData();
         SceneManager.LoadScene("GameScene");
     }
 
