@@ -42,8 +42,6 @@ public class DataManager : MonoBehaviour
 
     public void SaveGame()
     {
-        UpdateSaveData();
-
         string json = JsonUtility.ToJson(saveData, true);
         File.WriteAllText(savePath, json);
         Debug.Log($"게임 저장 완료: {savePath}");
@@ -64,15 +62,20 @@ public class DataManager : MonoBehaviour
         PlayerData player = GameManager.Instance.PlayerData;
 
         session.level = player.level;
+        session.maxExp = player.maxExp;
         session.currentExp = player.currentExp;
-        session.maxHp = player.maxHp;
-        session.atk = player.atk;
-        session.def = player.def;
-        session.agi = player.agi;
-        session.luc = player.luc;
+        session.maxHp = player.baseMaxHp;
+        session.atk = player.baseAtk;
+        session.def = player.baseDef;
+        session.agi = player.baseAgi;
+        session.luc = player.baseLuc;
         session.unspentStatPoints = player.unspentStatPoints;
         session.currentGold = player.currentGold;
         session.currentBP = GameManager.Instance.currentBP;
+
+        Vector3 currentPosition = player.transform.position;
+        session.playerPosX = currentPosition.x;
+        session.playerPosY = currentPosition.y;
     }
 
     // 새로운 판 시작 시 이전 세션 데이터를 지우는 함수.

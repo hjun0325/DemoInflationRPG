@@ -13,12 +13,9 @@ MonoBehaviour:
   m_Name: Accessory 6
   m_EditorClassIdentifier: 
   itemID: 206
-  itemName: 
+  itemName: Royal Ring
   itemType: 2
-  itemIcon: {fileID: 0}
-  price: 0
-  hpBonus: 0
-  atkBonus: 0
-  defBonus: 0
-  agiBonus: 0
-  lucBonus: 0
+  itemIcon: {fileID: 21300000, guid: 3109af30c55a06d469e2206d30d0dd84, type: 3}
+  price: 10000
+  statBonusName: LUC
+  addStatBonus: 100

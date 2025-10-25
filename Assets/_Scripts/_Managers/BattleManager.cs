@@ -57,10 +57,10 @@ public class BattleManager : MonoBehaviour
 
         // [플레이어 최종 스탯 계산]
         // TODO: 장비 보너스 합산
-        playerFinalATK = playerData.atk;
-        playerFinalDEF = playerData.def;
-        playerFinalAGI = playerData.agi;
-        playerFinalLUC = playerData.luc;
+        playerFinalATK = playerData.TotalAtk;
+        playerFinalDEF = playerData.TotalDef;
+        playerFinalAGI = playerData.TotalAgi;
+        playerFinalLUC = playerData.TotalLuc;
 
         // [몬스터 최종 스탯 계산]
         monsterFinalATK = currentMonsterData.atk;
@@ -167,7 +167,7 @@ public class BattleManager : MonoBehaviour
         damage = (long)Mathf.Max(1, damage);
 
         playerData.currentHp -= (int)damage;
-        UIManager.Instance.UpdatePlayerHP(playerData.currentHp, playerData.maxHp);
+        UIManager.Instance.UpdatePlayerHP(playerData.currentHp, playerData.TotalMaxHp);
         Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }

@@ -3,10 +3,14 @@ using System.Collections.Generic;
 [System.Serializable]
 public class GameSaveData
 {
-    // 계정 전체에 영구적으로 저장될 데이터.
-    public List<int> ownedItemIDs; // 장비ID 저장.
+    // --- 영구 데이터 (계정 귀속) ---
+    public List<int> ownedItemIDs; // 장비ID 저장
+    public int equippedWeaponID = -1;
+    public int equippedArmorID = -1;
+    public int equippedAccessoryID1 = -1; // 첫 번째 액세서리 슬롯
+    public int equippedAccessoryID2 = -1; // 두 번째 액세서리 슬롯
 
-    // 한 판의 플레이 동안만 임시로 저장될 데이터. (이어하기 용)
+    // --- 세션 데이터 (한 판 임시 저장) ---
     public SessionData currentSessionData;
 
     public GameSaveData()
@@ -29,5 +33,8 @@ public class SessionData
     public int luc = 3;
     public int unspentStatPoints = 0;
     public long currentGold = 0;
-    public int currentBP = 2;
+    public int currentBP = 10;
+
+    public float playerPosX;
+    public float playerPosY;
 }

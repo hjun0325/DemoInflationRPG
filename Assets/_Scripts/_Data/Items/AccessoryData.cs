@@ -5,7 +5,6 @@ public class AccessoryData : ItemData
 {
     public string statBonusName;
     public int addStatBonus;
-    public int mulStatBonus;
 
     private void OnValidate()
     {

@@ -16,6 +16,10 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState { get; private set; }
     public PlayerData PlayerData { get; private set; }
 
+    // --- Auto Save ---
+    [SerializeField] private float autoSaveInterval = 5f; // 5초
+    private float autoSaveTimer = 0f;
+
     // --- BP ---
     public int currentBP { get; private set; }
     [SerializeField] private int startingBP = 10;
@@ -36,6 +40,24 @@ public class GameManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void Update()
+    {
+        if (CurrentState != GameState.World) return;
+
+        autoSaveTimer += Time.deltaTime; // 시간 누적
+
+        if (autoSaveTimer >= autoSaveInterval)
+        {
+            autoSaveTimer = 0f; // 타이머 초기화
+
+            Debug.Log("자동 저장 (5초 주기) 실행...");
+
+            // 저장 실행: 스냅샷 갱신 후 파일 저장
+            DataManager.Instance.UpdateSaveData();
+            DataManager.Instance.SaveGame();
         }
     }
 
@@ -102,6 +124,91 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = 1f;
                 break;
         }
+    }
+
+    // 아이템 구매 여부 확인.
+    public bool PurchaseItem(ItemData itemToBuy)
+    {
+        if (PlayerData.currentGold >= itemToBuy.price)
+        {
+            PlayerData.currentGold -= itemToBuy.price;
+
+            DataManager.Instance.saveData.ownedItemIDs.Add(itemToBuy.itemID);
+            DataManager.Instance.UpdateSaveData();
+            UIManager.Instance.UpdateMoney(PlayerData.currentGold);
+
+            Debug.Log($"{itemToBuy.itemName} 구매 완료!");
+            return true;
+        }
+        else
+        {
+            Debug.Log("골드가 부족합니다!");
+            return false;
+        }
+    }
+
+    // 장비 장착 함수.
+    public void EquipItem(ItemData itemToEquip, int slotIndex)
+    {
+        GameSaveData saveData = DataManager.Instance.saveData;
+
+        // 다른 슬롯의 장착된 악세인지 확인 후 해제.
+        if (itemToEquip.itemType == ItemType.Accessory)
+        {
+            if (slotIndex == 1 && saveData.equippedAccessoryID1 == itemToEquip.itemID)
+            {
+                saveData.equippedAccessoryID1 = -1;
+            }
+            else if (slotIndex == 0 && saveData.equippedAccessoryID2 == itemToEquip.itemID)
+            {
+                saveData.equippedAccessoryID2 = -1;
+            }
+        }
+
+        switch (itemToEquip.itemType)
+        {
+            case ItemType.Weapon:
+                saveData.equippedWeaponID = itemToEquip.itemID;
+                break;
+            case ItemType.Armor:
+                saveData.equippedArmorID = itemToEquip.itemID;
+                break;
+            case ItemType.Accessory:
+                if (slotIndex == 0) saveData.equippedAccessoryID1 = itemToEquip.itemID;
+                else if (slotIndex == 1) saveData.equippedAccessoryID2 = itemToEquip.itemID;
+
+                else // (혹시 모를 예외: 상점에서 바로 장착 시 빈 슬롯 찾기)
+                {
+                    if (saveData.equippedAccessoryID1 == -1) saveData.equippedAccessoryID1 = itemToEquip.itemID;
+                    else saveData.equippedAccessoryID2 = itemToEquip.itemID;
+                }
+
+                break;
+        }
+
+        PlayerData?.RecalculateStats(); // 스탯 재계산.
+        PlayerData.HealToFull();
+        DataManager.Instance.UpdateSaveData();
+    }
+
+    // 장비 해제 함수.
+    public void UnequipItem(ItemData itemToUnequip, int slotIndex)
+    {
+        GameSaveData saveData = DataManager.Instance.saveData;
+
+        // 지정된 슬롯 인덱스의 아이템만 해제
+        if (itemToUnequip.itemType == ItemType.Accessory)
+        {
+            if (slotIndex == 0 && saveData.equippedAccessoryID1 == itemToUnequip.itemID) saveData.equippedAccessoryID1 = -1;
+            else if (slotIndex == 1 && saveData.equippedAccessoryID2 == itemToUnequip.itemID) saveData.equippedAccessoryID2 = -1;
+        }
+
+        if (saveData.equippedWeaponID == itemToUnequip.itemID) saveData.equippedWeaponID = -1;
+        else if (saveData.equippedArmorID == itemToUnequip.itemID) saveData.equippedArmorID = -1;
+
+        PlayerData?.RecalculateStats(); // 스탯 재계산.
+        PlayerData.HealToFull();
+        DataManager.Instance.UpdateSaveData();
     }
 
     // 인카운터 게이지 증가 함수 (PlayerController가 호출할 함수).
@@ -176,6 +283,7 @@ public class GameManager : MonoBehaviour
             PlayerData.HealToFull();
         }
 
+        DataManager.Instance.UpdateSaveData();
         DataManager.Instance.SaveGame();
         UIManager.Instance.UpdateBP(currentBP);
 
@@ -195,10 +303,10 @@ public class GameManager : MonoBehaviour
         Debug.Log("게임 오버! BP를 모두 소진했습니다.");
         // TODO: PlayerData의 장비 목록을 DataManager의 ownedItemIDs에 추가
 
+        UIManager.Instance.ShowGameoverUI();
+
         // 세션 데이터 삭제 및 영구 데이터 저장.
         DataManager.Instance.ClearSessionData();
         DataManager.Instance.SaveGame();
-
-        SceneManager.LoadScene("MainMenuScene");
     }
 }

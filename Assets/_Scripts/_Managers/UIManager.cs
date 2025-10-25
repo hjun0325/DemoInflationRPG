@@ -10,6 +10,8 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] public GameObject JoystickUI;
 
+    public int CurrentTargetSlotIndex { get; private set; } = -1;
+
     [Header("InGame UI")]
     [SerializeField] private Slider encounterGaugeSlider;
     [SerializeField] private TMP_Text levelText;
@@ -143,7 +145,7 @@ public class UIManager : MonoBehaviour
         battleUI.SetActive(true);
 
         monsterImage.sprite = monster.monsterIcon;
-        UpdatePlayerHP(player.currentHp, player.maxHp);
+        UpdatePlayerHP(player.currentHp, player.TotalMaxHp);
         UpdateMonsterHP(monsterMaxHP, monsterMaxHP);
     }
 
@@ -165,6 +167,7 @@ public class UIManager : MonoBehaviour
 
     public void OnClick_LoadMainMenuScene()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenuScene");
     }
     public void OnClick_ShowMenuPanel()
@@ -222,7 +225,7 @@ public class UIManager : MonoBehaviour
     {
         playerHPSlider.maxValue = max;
         playerHPSlider.value = current;
-        playerHPText.text = $"{current}/{max}";
+        playerHPText.text = current < 0 ? $"{0}/{max}" : $"{current}/{max}";
     }
 
     public void UpdateMonsterHP(int current, int max)

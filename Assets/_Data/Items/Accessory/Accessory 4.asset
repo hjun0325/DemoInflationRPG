@@ -13,12 +13,9 @@ MonoBehaviour:
   m_Name: Accessory 4
   m_EditorClassIdentifier: 
   itemID: 204
-  itemName: 
+  itemName: Amethyst Ring
   itemType: 2
-  itemIcon: {fileID: 0}
-  price: 0
-  hpBonus: 0
-  atkBonus: 0
-  defBonus: 0
-  agiBonus: 0
-  lucBonus: 0
+  itemIcon: {fileID: 21300000, guid: e9b6e34148732404ab5864aea4e7f24d, type: 3}
+  price: 10000
+  statBonusName: HP
+  addStatBonus: 600

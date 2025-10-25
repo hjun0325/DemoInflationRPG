@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public class ItemDatabase : ScriptableObject
 {
     [SerializeField] private List<ItemData> allItems;
+    public List<ItemData> AllItems => allItems;
 
     // 아이템 ID를 사용하여 데이터 베이스에서 해당하는 ItemData를 찾아 반환한다.
     public ItemData GetItemByID(int id)

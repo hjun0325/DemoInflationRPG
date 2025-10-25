@@ -20,4 +20,4 @@ MonoBehaviour:
   def: 2
   agi: 3
   dropExp: 180
-  dropGold: 320
+  dropGold: 100000

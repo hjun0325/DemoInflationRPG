@@ -13,12 +13,9 @@ MonoBehaviour:
   m_Name: Accessory 3
   m_EditorClassIdentifier: 
   itemID: 203
-  itemName: 
+  itemName: Amber Ring
   itemType: 2
-  itemIcon: {fileID: 0}
-  price: 0
-  hpBonus: 0
-  atkBonus: 0
-  defBonus: 0
-  agiBonus: 0
-  lucBonus: 0
+  itemIcon: {fileID: 21300000, guid: daeb8dea7f8fcca4597fd2950571bf69, type: 3}
+  price: 1000
+  statBonusName: LUC
+  addStatBonus: 50
