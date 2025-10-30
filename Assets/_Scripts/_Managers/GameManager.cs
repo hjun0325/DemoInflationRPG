@@ -5,7 +5,8 @@ public enum GameState
 {
     World,
     Battle,
-    Menu
+    Menu,
+    GameOver
 }
 
 public class GameManager : MonoBehaviour
@@ -109,11 +110,13 @@ public class GameManager : MonoBehaviour
         switch (CurrentState)
         {
             case GameState.World:
+                SoundManager.Instance.PlayBGM("InGame");
                 UIManager.Instance.JoystickUI.SetActive(true);
                 Time.timeScale = 1f;
                 break;
 
             case GameState.Battle:
+                SoundManager.Instance.PlayBGM("Battle");
                 UIManager.Instance.JoystickUI.SetActive(false);
                 Time.timeScale = 0f;
                 BattleManager.Instance.StartBattle();
@@ -302,6 +305,10 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("게임 오버! BP를 모두 소진했습니다.");
         // TODO: PlayerData의 장비 목록을 DataManager의 ownedItemIDs에 추가
+
+        ChangeGameState(GameState.GameOver);
+
+        SoundManager.Instance.PlayBGM("GameOver");
 
         UIManager.Instance.ShowGameoverUI();
 

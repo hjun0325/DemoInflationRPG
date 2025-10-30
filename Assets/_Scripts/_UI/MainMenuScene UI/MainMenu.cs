@@ -4,6 +4,14 @@ public class MainMenu : MonoBehaviour
 {
     public GameObject MainMenuCanvas;
     public GameObject GameStartCanvas;
+    public GameObject optionsPanel;
+    public GameObject blockerPanel;
+
+    private void Start()
+    {
+        Time.timeScale = 1f;
+        SoundManager.Instance.PlayBGM("Main");
+    }
 
     public void OnClickGameStart()
     {
@@ -12,15 +20,12 @@ public class MainMenu : MonoBehaviour
         MainMenuCanvas.SetActive(false);
         GameStartCanvas.SetActive(true);
     }
-
-    public void OnClickGameInformation()
-    {
-        Debug.Log("게임 정보");
-    }
-
     public void OnClickSetting()
     {
         Debug.Log("설정");
+
+        blockerPanel.SetActive(true);
+        optionsPanel.SetActive(true);
     }
 
     public void OnClickEnd()
@@ -30,5 +35,11 @@ public class MainMenu : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+
+    public void OnClickBack()
+    {
+        blockerPanel.SetActive(false);
+        optionsPanel.SetActive(false);
     }
 }

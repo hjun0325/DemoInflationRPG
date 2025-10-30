@@ -51,6 +51,7 @@ public class DataManager : MonoBehaviour
     {
         // GameManager와 PlayerData가 존재하는지 확인 (GameScene에 있을 때만 실행)
         if (GameManager.Instance == null || GameManager.Instance.PlayerData== null) return;
+        if (GameManager.Instance.CurrentState == GameState.GameOver) return;
 
         // 현재 세션 데이터가 없다면 새로 생성
         if (saveData.currentSessionData == null)

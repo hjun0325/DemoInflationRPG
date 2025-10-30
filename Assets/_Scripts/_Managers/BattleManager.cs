@@ -15,6 +15,9 @@ public class BattleManager : MonoBehaviour
     private PlayerData playerData;
     private MonsterData currentMonsterData;
 
+    [SerializeField] private Transform monsterImageTransform; // "Monster Image"의 Transform
+    [SerializeField] private Transform playerImageTransform; // "Player Image"의 Transform
+
     // 플레이어 최종 스탯.
     private int playerFinalATK, playerFinalDEF, playerFinalAGI, playerFinalLUC;
 
@@ -50,6 +53,8 @@ public class BattleManager : MonoBehaviour
 
     private async UniTask BattleRoutineAsync()
     {
+        await UniTask.SwitchToMainThread();
+
         // -- 전투 준비 단계 --
         playerData = FindAnyObjectByType<PlayerData>();
         // TODO: MapManager로부터 실제 몬스터 데이터 받아와 스탯 설정
@@ -131,6 +136,8 @@ public class BattleManager : MonoBehaviour
     // 플레이어 턴.
     private async UniTask ExecutePlayerTurnAsync()
     {
+        await UniTask.SwitchToMainThread();
+
         Debug.Log("플레이어 턴 시작");
         while (true)
         {
@@ -145,6 +152,13 @@ public class BattleManager : MonoBehaviour
 
             monsterCurrentHP -= (int)damage;
             UIManager.Instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
+
+            EffectManager.Instance.PlayEffect(
+            "PlayerAttack",                 // DB에 등록한 이펙트 이름
+            monsterImageTransform.position, // 몬스터 이미지의 현재 위치
+            monsterImageTransform);         // 이펙트가 생성될 부모 캔버스
+            SoundManager.Instance.PlaySFX("PlayerAttack1");
+
             Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
 
             await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
@@ -160,6 +174,8 @@ public class BattleManager : MonoBehaviour
     // 몬스터 턴.
     private async UniTask ExecuteMonsterTurnAsync()
     {
+        await UniTask.SwitchToMainThread();
+
         Debug.Log("몬스터 턴 시작");
 
         float reductionRate = 0.3f * (playerEffectiveDEF / (float)(playerEffectiveDEF + monsterEffectiveATK));
@@ -168,6 +184,13 @@ public class BattleManager : MonoBehaviour
 
         playerData.currentHp -= (int)damage;
         UIManager.Instance.UpdatePlayerHP(playerData.currentHp, playerData.TotalMaxHp);
+
+        EffectManager.Instance.PlayEffect(
+            "MonsterAttack",              // 1. DB에 등록한 이펙트 이름
+            playerImageTransform.position,                    // 2. 플레이어 이미지의 현재 위치
+            playerImageTransform);        // 3. 이펙트가 생성될 부모 캔버스
+        SoundManager.Instance.PlaySFX("MonsterAttack1");
+
         Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }

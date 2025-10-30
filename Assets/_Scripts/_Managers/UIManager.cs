@@ -42,6 +42,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject menuUI;
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private UI_StatusPanel statusPanel;
+    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject blockerPanel;
+
+    [Header("Equipment UI")]
+    [SerializeField] private GameObject equipmentUI;
     [SerializeField] private UI_EquipmentPanel equipmentPanel;
     [SerializeField] private UI_StorePanel weaponStorePanel;
     [SerializeField] private UI_StorePanel armorStorePanel;
@@ -79,6 +84,8 @@ public class UIManager : MonoBehaviour
     // 골드 보상 연출용 비동기 함수.
     private async UniTask PlayGoldAnimationAsync(long startMoney, long gainedMoney)
     {
+        await UniTask.SwitchToMainThread();
+
         float goldAnimDuration = 2.0f; // 골드 연출 시간
         float timer = 0f;
         plusMoneyText.text = $"+ {gainedMoney:N0}";
@@ -102,6 +109,8 @@ public class UIManager : MonoBehaviour
     // 경험치 보상 연출용 비동기 함수.
     private async UniTask PlayExpAnimationAsync(long startExp, long gainedExp, long maxExp, long currentLevel)
     {
+        await UniTask.SwitchToMainThread();
+
         long remainingExp = gainedExp;
         long currentDisplayExp = startExp;
         long maxDisplayExp = maxExp;
@@ -110,6 +119,8 @@ public class UIManager : MonoBehaviour
 
         resultExpSlider.maxValue = maxDisplayExp;
         resultExpSlider.value = currentDisplayExp;
+
+        SoundManager.Instance.PlaySFX("LevelUp");
 
         while (remainingExp > 0)
         {
@@ -124,9 +135,11 @@ public class UIManager : MonoBehaviour
             resultExpSlider.value = currentDisplayExp;
             expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
             plusExpText.text = $"+ {remainingExp:N0}";
-            
+
+
             if (currentDisplayExp >= maxDisplayExp)
             {
+                SoundManager.Instance.PlaySFX("LevelUp");
                 currentDisplayLevel++;
                 currentDisplayExp -= maxDisplayExp;
                 maxDisplayExp = (long)(3 + Mathf.Pow(currentDisplayLevel, 1.5f) * 0.5f);
@@ -165,6 +178,18 @@ public class UIManager : MonoBehaviour
         gameoverUI.SetActive(true);
     }
 
+    public void OnClick_OpenOptionsPanel()
+    {        
+        blockerPanel.SetActive(true);
+        optionsPanel.SetActive(true);
+    }
+
+    public void OnClick_CloseOptionsPanel()
+    {
+        optionsPanel.SetActive(false);
+        blockerPanel.SetActive(false);
+    }
+
     public void OnClick_LoadMainMenuScene()
     {
         Time.timeScale = 1f;
@@ -195,7 +220,13 @@ public class UIManager : MonoBehaviour
 
     public void OnClick_ShowEquipmentPanel()
     {
+        equipmentUI.SetActive(true);
         equipmentPanel.Show();
+    }
+
+    public void OnClick_CloseEquipmentPanel()
+    {
+        equipmentUI.SetActive(false);
     }
 
     public void OnClick_ShowWeaponStorePanel()

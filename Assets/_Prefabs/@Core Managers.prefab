@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8396606069822508397}
   - component: {fileID: 6157251999946120606}
   - component: {fileID: 610259099527115949}
+  - component: {fileID: -6091062980027682914}
   m_Layer: 0
   m_Name: '@Core Managers'
   m_TagString: Untagged
@@ -45,6 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a636f89c2b20564ca4775f9a5898b63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoSaveInterval: 5
   startingBP: 2
   encounterMaxGauge: 100
   increaseRate: 20
@@ -60,3 +62,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05c13abf7e193de4688638ca51a7a617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-6091062980027682914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1048414802491965429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe63b83068bbb148931acb640740efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioDB: {fileID: 11400000, guid: 7f93cae5a7c1faf4ab5571e801d4d888, type: 2}

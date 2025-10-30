@@ -480,6 +480,7 @@ GameObject:
   - component: {fileID: 259291671230335164}
   - component: {fileID: 7469790255350678459}
   - component: {fileID: 6235825525565922051}
+  - component: {fileID: 2842204223364810611}
   m_Layer: 5
   m_Name: Slot Button
   m_TagString: Untagged
@@ -604,6 +605,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &2842204223364810611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3571668060471879689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 599e75ac59818be4bb5ccb4a56538476, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5679476119184807371
 GameObject:
   m_ObjectHideFlags: 0
@@ -669,7 +682,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ATK x 100%
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5a0f34feddb8a384db846b963cdf3d70, type: 2}
   m_sharedMaterial: {fileID: -3780261751620072285, guid: 5a0f34feddb8a384db846b963cdf3d70, type: 2}
