@@ -22,6 +22,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Battle UI")]
     [SerializeField] private GameObject battleUI;
+    [SerializeField] private Transform battleCanvasTransform;
     [SerializeField] private Slider monsterHPSlider;
     [SerializeField] private Image monsterImage;
     [SerializeField] private Slider playerHPSlider;
@@ -65,6 +66,11 @@ public class UIManager : MonoBehaviour
     {
         /*MenuButton?.onClick.AddListener(OnClick_ShowMenuPanel);
         closeResultButton?.onClick.AddListener(OnClick_CloseResultPanel);*/
+    }
+
+    public Transform GetBattleCanvasTransform()
+    {
+        return battleCanvasTransform;
     }
 
     // 보상 연출용 비동기 함수.

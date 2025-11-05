@@ -15,8 +15,11 @@ public class BattleManager : MonoBehaviour
     private PlayerData playerData;
     private MonsterData currentMonsterData;
 
-    [SerializeField] private Transform monsterImageTransform; // "Monster Image"의 Transform
-    [SerializeField] private Transform playerImageTransform; // "Player Image"의 Transform
+    [SerializeField] private RectTransform monsterAttackEffectTransform;
+    [SerializeField] private RectTransform playerAttackEffectTransform;
+
+    [SerializeField] private RectTransform monsterImageTransform;
+    [SerializeField] private RectTransform playerImageTransform;
 
     // 플레이어 최종 스탯.
     private int playerFinalATK, playerFinalDEF, playerFinalAGI, playerFinalLUC;
@@ -155,10 +158,11 @@ public class BattleManager : MonoBehaviour
 
             EffectManager.Instance.PlayEffect(
             "PlayerAttack",                 // DB에 등록한 이펙트 이름
-            monsterImageTransform.position, // 몬스터 이미지의 현재 위치
-            monsterImageTransform);         // 이펙트가 생성될 부모 캔버스
+            monsterAttackEffectTransform.position, // 몬스터 이미지의 현재 위치
+            monsterAttackEffectTransform);         // 이펙트가 생성될 부모 캔버스
             SoundManager.Instance.PlaySFX("PlayerAttack1");
 
+            EffectManager.Instance.ShowDamageText(monsterImageTransform.position, (int)damage);
             Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
 
             await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
@@ -187,10 +191,11 @@ public class BattleManager : MonoBehaviour
 
         EffectManager.Instance.PlayEffect(
             "MonsterAttack",              // 1. DB에 등록한 이펙트 이름
-            playerImageTransform.position,                    // 2. 플레이어 이미지의 현재 위치
-            playerImageTransform);        // 3. 이펙트가 생성될 부모 캔버스
+            playerAttackEffectTransform.position,                    // 2. 플레이어 이미지의 현재 위치
+            playerAttackEffectTransform);        // 3. 이펙트가 생성될 부모 캔버스
         SoundManager.Instance.PlaySFX("MonsterAttack1");
 
+        EffectManager.Instance.ShowDamageText(playerImageTransform.position, (int)damage);
         Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }

@@ -1,7 +1,6 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using Unity.VisualScripting;
 
 public class UI_EquipmentPanel : UI_Popup
 {
@@ -59,15 +58,21 @@ public class UI_EquipmentPanel : UI_Popup
 
     private void UpdateWeaponSlot(int itemID)
     {
+        Color color = weaponImage.color;
+
         // 장착된 무기가 없을 경우 (ID = -1)
         if (itemID == -1)
         {
+            color.a = 0.0f;
+            weaponImage.color = color;
             weaponImage.sprite = null;
             weaponName.text = "No Item";
             addATKText.text = "";
             mulATKText.text = "";
             return;
         }
+        color.a = 1.0f;
+        weaponImage.color = color;
 
         WeaponData weapon = itemDatabase.GetItemByID(itemID) as WeaponData;
         if (weapon == null) return;
@@ -80,15 +85,22 @@ public class UI_EquipmentPanel : UI_Popup
 
     private void UpdateArmorSlot(int itemID)
     {
+        Color color = armorImage.color;
+
         // 장착된 방어구가 없을 경우 (ID = -1)
         if (itemID == -1)
         {
+            color.a = 0.0f;
+            armorImage.color = color;
             armorImage.sprite = null;
             armorName.text = "No Item";
             addDEFText.text = "";
             mulDEFText.text = "";
             return;
         }
+
+        color.a = 1.0f;
+        armorImage.color = color;
 
         ArmorData armor = itemDatabase.GetItemByID(itemID) as ArmorData;
         if (armor == null) return;
@@ -118,14 +130,21 @@ public class UI_EquipmentPanel : UI_Popup
 
     private void UpdateAccessorySlot1(int itemID)
     {
+        Color color = accessoryImage1.color;
+
         // 장착된 액세서리가 없을 경우 (ID = -1)
         if (itemID == -1)
         {
+            color.a = 0.0f;
+            accessoryImage1.color = color;
             accessoryImage1.sprite = null;
             accessoryName1.text = "No Item";
             addStatText1.text = "";
             return;
         }
+
+        color.a = 1.0f;
+        accessoryImage1.color = color;
 
         AccessoryData accessory = itemDatabase.GetItemByID(itemID) as AccessoryData;
         if (accessory == null) return;
@@ -137,14 +156,21 @@ public class UI_EquipmentPanel : UI_Popup
 
     private void UpdateAccessorySlot2(int itemID)
     {
+        Color color = accessoryImage2.color;
+
         // 장착된 액세서리가 없을 경우 (ID = -1)
         if (itemID == -1)
         {
+            color.a = 0.0f;
+            accessoryImage2.color = color;
             accessoryImage2.sprite = null;
             accessoryName2.text = "No Item";
             addStatText2.text = "";
             return;
         }
+
+        color.a = 1.0f;
+        accessoryImage2.color = color;
 
         AccessoryData accessory = itemDatabase.GetItemByID(itemID) as AccessoryData;
         if (accessory == null) return;

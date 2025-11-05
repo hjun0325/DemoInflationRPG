@@ -17,6 +17,7 @@ public class EffectManager : MonoBehaviour
         Instance = this;
         poolParent = new GameObject("EffectPool").transform;
         poolParent.SetParent(this.transform);
+        effectPool["DamageText"] = new Queue<GameObject>();
     }
 
     // 지정된 위치에 이펙트를 재생
@@ -48,6 +49,32 @@ public class EffectManager : MonoBehaviour
             Debug.LogWarning($"이펙트 '{name}' 프리팹에 EffectAutoReturn 스크립트가 없습니다!");
             // 비상시 3초 뒤에 강제 파괴 (풀링 실패)
             Destroy(effect, 3f);
+        }
+    }
+
+    public void ShowDamageText(Vector3 position, int damage)
+    {
+        // "DamageText"라는 이름으로 DB에 등록된 프리팹을 풀에서 가져온다.
+        GameObject textGO = GetFromPool("DamageText");
+        if (textGO == null) return;
+
+        // 캔버스 위에 배치
+        Transform canvasTransform = UIManager.Instance.GetBattleCanvasTransform();
+        textGO.transform.SetParent(canvasTransform);
+        textGO.transform.localScale = Vector3.one;
+        textGO.SetActive(true);
+
+        // DamageText 스크립트를 찾아 Show 함수를 호출
+        DamageText textScript = textGO.GetComponent<DamageText>();
+        if (textScript != null)
+        {
+            textScript.Show(damage, position);
+        }
+        else
+        {
+            // DamageText 스크립트가 프리팹에 없는 경우,
+            // 즉시 풀에 반환하여 무한 생성을 방지
+            ReturnToPool(textGO, "DamageText");
         }
     }
 

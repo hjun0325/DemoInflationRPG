@@ -17,3 +17,5 @@ MonoBehaviour:
     prefab: {fileID: 1542422871852939967, guid: 799f47053a0f4694097310a08fe9d24a, type: 3}
   - name: MonsterAttack
     prefab: {fileID: 4043082309246649428, guid: 3c1864ee92d15a54d9a1a1efcc0ff8e4, type: 3}
+  - name: DamageText
+    prefab: {fileID: 1325979047971125242, guid: a721a996ee772f648a554ee6a2e4a651, type: 3}
