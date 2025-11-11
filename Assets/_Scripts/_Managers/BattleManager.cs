@@ -18,8 +18,8 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private RectTransform monsterAttackEffectTransform;
     [SerializeField] private RectTransform playerAttackEffectTransform;
 
-    [SerializeField] private RectTransform monsterImageTransform;
-    [SerializeField] private RectTransform playerImageTransform;
+    [SerializeField] private Transform monsterDamagePanel;
+    [SerializeField] private Transform playerDamagePanel;
 
     // 플레이어 최종 스탯.
     private int playerFinalATK, playerFinalDEF, playerFinalAGI, playerFinalLUC;
@@ -153,7 +153,11 @@ public class BattleManager : MonoBehaviour
             if (isCritical) damage = (long)(damage * 1.5f);
             damage = (long)Mathf.Max(1, damage);
 
-            monsterCurrentHP -= (int)damage;
+            // 데미지 분산.
+            float variance = Random.Range(0.9f, 1.1f);
+            long finalDamage = (long)(damage * variance);
+
+            monsterCurrentHP -= (int)finalDamage;
             UIManager.Instance.UpdateMonsterHP(monsterCurrentHP, monsterMaxHP);
 
             EffectManager.Instance.PlayEffect(
@@ -162,8 +166,10 @@ public class BattleManager : MonoBehaviour
             monsterAttackEffectTransform);         // 이펙트가 생성될 부모 캔버스
             SoundManager.Instance.PlaySFX("PlayerAttack1");
 
-            EffectManager.Instance.ShowDamageText(monsterImageTransform.position, (int)damage);
-            Debug.Log($"플레이어가 {damage} 피해를 입혔습니다!");
+            string damageTextEffect = isCritical ? "CriticalDamageText" : "DamageText";
+            EffectManager.Instance.ShowDamageText(damageTextEffect, (int)finalDamage, monsterDamagePanel);
+            //EffectManager.Instance.ShowDamageText(monsterImageTransform.position, (int)damage);
+            Debug.Log($"플레이어가 {finalDamage} 피해를 입혔습니다!");
 
             await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
             if (monsterCurrentHP <= 0) break;
@@ -186,7 +192,10 @@ public class BattleManager : MonoBehaviour
         long damage = (long)(monsterEffectiveATK * (1 - reductionRate));
         damage = (long)Mathf.Max(1, damage);
 
-        playerData.currentHp -= (int)damage;
+        float variance = Random.Range(0.9f, 1.1f);
+        long finalDamage = (long)(damage * variance);
+
+        playerData.currentHp -= (int)finalDamage;
         UIManager.Instance.UpdatePlayerHP(playerData.currentHp, playerData.TotalMaxHp);
 
         EffectManager.Instance.PlayEffect(
@@ -195,8 +204,8 @@ public class BattleManager : MonoBehaviour
             playerAttackEffectTransform);        // 3. 이펙트가 생성될 부모 캔버스
         SoundManager.Instance.PlaySFX("MonsterAttack1");
 
-        EffectManager.Instance.ShowDamageText(playerImageTransform.position, (int)damage);
-        Debug.Log($"몬스터가 {damage} 피해를 입혔습니다!");
+        EffectManager.Instance.ShowDamageText("DamageText", (int)finalDamage, playerDamagePanel);
+        Debug.Log($"몬스터가 {finalDamage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }
 }

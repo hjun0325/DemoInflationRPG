@@ -9,6 +9,9 @@ public class DamageText : MonoBehaviour
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
 
+    [SerializeField] private string prefix = "";
+    private string poolName;
+
     private void Awake()
     {
         text = GetComponent<TMP_Text>();
@@ -16,19 +19,21 @@ public class DamageText : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();
     }
 
-    public void Show(int damage, Vector3 position)
+    public void Show(int damage, string poolName)
     {
         // 초기 상태 설정
-        text.text =  damage.ToString();
-        transform.position = position;
+        this.poolName = poolName;
+        text.text = prefix + damage.ToString();
         canvasGroup.alpha = 1f;
         rectTransform.localScale = Vector3.one;
+
+        Vector2 startPos = rectTransform.anchoredPosition; // (0, 0)
 
         // DOTween 시퀀스 생성
         Sequence sequence = DOTween.Sequence();
         // 애니메이션 (0.3초 동안 위로 50픽셀 이동)
         sequence.Append(
-            rectTransform.DOAnchorPosY(rectTransform.anchoredPosition.y + 50f, 0.3f).SetEase(Ease.OutQuad));
+            rectTransform.DOAnchorPosY(rectTransform.anchoredPosition.y+30.0f, 0.3f).SetEase(Ease.OutQuad));
         // 0.2초 동안 살짝 커졌다가 돌아오기
         sequence.Join(rectTransform.DOPunchScale(Vector3.one * 0.2f, 0.2f));
         // 0.5초의 딜레이 후, 0.3초 동안 사라지게(Fade Out) 함
@@ -42,7 +47,7 @@ public class DamageText : MonoBehaviour
         sequence.OnComplete(() =>
         {
             // EffectManager에 자신을 반환해달라고 요청
-            EffectManager.Instance.ReturnToPool(gameObject, "DamageText");
+            EffectManager.Instance.ReturnToPool(gameObject, this.poolName);
         });
     }
 }

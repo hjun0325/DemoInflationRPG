@@ -19,3 +19,5 @@ MonoBehaviour:
     prefab: {fileID: 4043082309246649428, guid: 3c1864ee92d15a54d9a1a1efcc0ff8e4, type: 3}
   - name: DamageText
     prefab: {fileID: 1325979047971125242, guid: a721a996ee772f648a554ee6a2e4a651, type: 3}
+  - name: CriticalDamageText
+    prefab: {fileID: 8888540428917025170, guid: a069ee470b390054ca457b84eb393354, type: 3}

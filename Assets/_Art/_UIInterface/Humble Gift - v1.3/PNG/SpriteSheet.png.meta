@@ -525,13 +525,13 @@ TextureImporter:
       name: SpriteSheet_0
       rect:
         serializedVersion: 2
-        x: 31
+        x: 30
         y: 2062
         width: 159
         height: 67
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 40, y: 20, z: 40, w: 20}
       customData: 
       outline: []
       physicsShape: []
@@ -597,7 +597,7 @@ TextureImporter:
         height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 10, y: 2, z: 10, w: 2}
       customData: 
       outline: []
       physicsShape: []
@@ -685,7 +685,7 @@ TextureImporter:
         height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 10, y: 2, z: 10, w: 2}
       customData: 
       outline: []
       physicsShape: []
@@ -1653,7 +1653,7 @@ TextureImporter:
         height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 16, y: 6, z: 16, w: 6}
       customData: 
       outline: []
       physicsShape: []

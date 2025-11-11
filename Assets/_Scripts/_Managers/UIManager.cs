@@ -1,8 +1,9 @@
-using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -22,7 +23,6 @@ public class UIManager : MonoBehaviour
 
     [Header("Battle UI")]
     [SerializeField] private GameObject battleUI;
-    [SerializeField] private Transform battleCanvasTransform;
     [SerializeField] private Slider monsterHPSlider;
     [SerializeField] private Image monsterImage;
     [SerializeField] private Slider playerHPSlider;
@@ -62,101 +62,180 @@ public class UIManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    private void Start()
-    {
-        /*MenuButton?.onClick.AddListener(OnClick_ShowMenuPanel);
-        closeResultButton?.onClick.AddListener(OnClick_CloseResultPanel);*/
-    }
-
-    public Transform GetBattleCanvasTransform()
-    {
-        return battleCanvasTransform;
-    }
-
-    // 보상 연출용 비동기 함수.
+    // 전투 보상 연출
     public async UniTask PlayRewardAnimationAsync(long startMoney, long gainedMoney, long startExp, long gainedExp, long maxExp, long currentLevel)
     {
-        // 두 개의 Task를 각각 생성하고 시작.
-        var goldTask = PlayGoldAnimationAsync(startMoney, gainedMoney);
-        var expTask = PlayExpAnimationAsync(startExp, gainedExp, maxExp, currentLevel);
+        await UniTask.SwitchToMainThread();
 
-        // UniTask.WhenAll을 통해 두 Task가 모두 끝날 때까지 기다림
+        // 경험치 연출을 시작 전, '총 몇 번' 레벨업할지 미리 계산
+        int totalLevelsGained = CalculateTotalLevelUps(startExp, gainedExp, maxExp, currentLevel);
+
+        // 골드 연출과 경험치 연출 Task를 동시에 시작
+        var expTask = PlayExpAnimationAsync(startExp, gainedExp, maxExp, currentLevel, totalLevelsGained);
+        var goldTask = PlayGoldAnimationAsync(startMoney, gainedMoney);
+
+        // 두 연출이 모두 끝날 때까지 기다림
         await UniTask.WhenAll(goldTask, expTask);
 
         Debug.Log("모든 보상 연출 완료!");
         closeResultButton.interactable = true;
     }
 
-    // 골드 보상 연출용 비동기 함수.
+    // 골드 보상 연출
     private async UniTask PlayGoldAnimationAsync(long startMoney, long gainedMoney)
     {
-        await UniTask.SwitchToMainThread();
+        float duration = 1.5f; // 골드 연출 시간
 
-        float goldAnimDuration = 2.0f; // 골드 연출 시간
-        float timer = 0f;
-        plusMoneyText.text = $"+ {gainedMoney:N0}";
+        long finalMoney = startMoney + gainedMoney;
 
-        while (timer < goldAnimDuration)
-        {
-            timer += Time.unscaledDeltaTime;
-            float progress = timer / goldAnimDuration;
-            long currentGainedMoney = (long)Mathf.Lerp(0, gainedMoney, progress);
-            long remainingMoney = gainedMoney - currentGainedMoney;
+        // 보유 골드 증가 애니메이션
+        DOTween.To(() => startMoney, x => startMoney = x, finalMoney, duration)
+            .OnUpdate(() => currentMoneyText.text = startMoney.ToString("N0"))
+            .SetUpdate(true); // Time.timeScale=0일 때도 작동
 
-            currentMoneyText.text = (startMoney + currentGainedMoney).ToString("N0");
-            plusMoneyText.text = $"+ {remainingMoney:N0}";
-            await UniTask.Yield();
-        }
-        // 최종값 보정
-        currentMoneyText.text = (startMoney + gainedMoney).ToString("N0");
+        // 보상 골드 감소 애니메이션
+        await DOTween.To(() => gainedMoney, x => gainedMoney = x, 0, duration)
+            .OnUpdate(() => plusMoneyText.text = $"+ {gainedMoney:N0}")
+            .SetUpdate(true)
+            .AsyncWaitForCompletion(); // 이 애니메이션이 끝날 때까지 대기
+
+        // 애니메이션이 끝난 후 최종 값으로 보정
+        currentMoneyText.text = finalMoney.ToString("N0");
         plusMoneyText.text = "+0";
     }
 
-    // 경험치 보상 연출용 비동기 함수.
-    private async UniTask PlayExpAnimationAsync(long startExp, long gainedExp, long maxExp, long currentLevel)
+    // 경험치 보상 연출
+    private async UniTask PlayExpAnimationAsync(long startExp, long gainedExp, long maxExp, long currentLevel, int totalLevelsGained)
     {
-        await UniTask.SwitchToMainThread();
+        long remainingExp = gainedExp; // 남은 경험치
+        long currentDisplayExp = startExp; // 시작 경험치
+        long maxDisplayExp = maxExp; // 맥스 경험치
+        long currentDisplayLevel = currentLevel; // 현재 레벨
+        long finalLevel = currentLevel + totalLevelsGained; // 최종 레벨
 
-        long remainingExp = gainedExp;
-        long currentDisplayExp = startExp;
-        long maxDisplayExp = maxExp;
-        long currentDisplayLevel = currentLevel;
-        float tickSpeed = 0.01f;
-
-        resultExpSlider.maxValue = maxDisplayExp;
+        // --- UI 초기 설정 ---
+        levelText.text = currentDisplayLevel.ToString();
         resultExpSlider.value = currentDisplayExp;
+        resultExpSlider.maxValue = maxDisplayExp;
+        expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
+        plusExpText.text = $"+ {remainingExp:N0}";
 
-        SoundManager.Instance.PlaySFX("LevelUp");
+        if (remainingExp > 0) SoundManager.Instance.PlaySFX("LevelUp");
 
+        // 경험치 바가 차는 시간
+        float fillDuration = 0.05f;
+
+        // 레벨업 연출 시간 단축 변수
+        bool showAllLevelUps = (totalLevelsGained < 7);
+        int levelUpBatchCounter = 0;
+
+        // 경험치 연출
         while (remainingExp > 0)
         {
-            long expToAdd = (long)(maxDisplayExp * 0.1f);
-            if (expToAdd == 0) expToAdd = 1;
-            expToAdd = (long)Mathf.Min(expToAdd, remainingExp);
+            long expToLevelUp = maxDisplayExp - currentDisplayExp;
 
-            currentDisplayExp += expToAdd;
-            remainingExp -= expToAdd;
-
-            // UI 업데이트.
-            resultExpSlider.value = currentDisplayExp;
-            expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
-            plusExpText.text = $"+ {remainingExp:N0}";
-
-
-            if (currentDisplayExp >= maxDisplayExp)
+            // 남은 경험치로 레벨업 가능한 경우
+            if (remainingExp >= expToLevelUp)
             {
-                SoundManager.Instance.PlaySFX("LevelUp");
+                long previousRemainingExp = remainingExp;
+                remainingExp -= expToLevelUp;
+
+                // 슬라이더 애니메이션
+                var sliderTask = resultExpSlider.DOValue(maxDisplayExp, fillDuration)
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(true)
+                    .AsyncWaitForCompletion()
+                    .AsUniTask();
+
+                // 보상 경험치 애니메이션
+                var plusExpTextTask = DOTween.To(() => previousRemainingExp, x => previousRemainingExp = x, remainingExp, fillDuration)
+                    .OnUpdate(() => plusExpText.text = $"+ {previousRemainingExp:N0}")
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(true)
+                    .AsyncWaitForCompletion()
+                    .AsUniTask();
+
+                // 현재 경험치 애니메이션
+                var textTask = DOTween.To(() => currentDisplayExp, x => currentDisplayExp = x, maxDisplayExp, fillDuration)
+                    .OnUpdate(() => expText.text = $"{currentDisplayExp} / {maxDisplayExp}")
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(true)
+                    .AsyncWaitForCompletion()
+                    .AsUniTask();
+
+                await UniTask.WhenAll(sliderTask, plusExpTextTask, textTask);
+
+                // 레벨업 데이터 처리
                 currentDisplayLevel++;
-                currentDisplayExp -= maxDisplayExp;
+                levelUpBatchCounter++;
+                currentDisplayExp = 0;
                 maxDisplayExp = (long)(3 + Mathf.Pow(currentDisplayLevel, 1.5f) * 0.5f);
-                resultExpSlider.value = 0; // 바 초기화.
+
+                levelText.text = currentDisplayLevel.ToString();
+                expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
+                resultExpSlider.value = 0;
                 resultExpSlider.maxValue = maxDisplayExp;
-                await UniTask.Delay(100, DelayType.UnscaledDeltaTime);
+
+                // 7렙 미만이거나, 5의 배수 레벨업이거나, 마지막 레벨업이면 연출 실행
+                if (showAllLevelUps || (levelUpBatchCounter >= 5) || (currentDisplayLevel == finalLevel))
+                {
+                    levelUpBatchCounter = 0; // 카운터 초기화
+                    SoundManager.Instance.PlaySFX("LevelUp");
+                }
             }
-            await UniTask.Delay((int)(tickSpeed * 500), DelayType.UnscaledDeltaTime);
+            // 마지막 남은 경험치 추가.
+            else
+            {
+                long targetDisplayExp = currentDisplayExp + remainingExp;
+                long previousRemainingExp = remainingExp; // 현재 남아있는 경험치 값을 저장
+                remainingExp = 0;
+
+                // 슬라이더 애니메이션
+                var sliderTask = resultExpSlider.DOValue(targetDisplayExp, fillDuration)
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(true)
+                    .AsyncWaitForCompletion()
+                    .AsUniTask();
+
+                // 보상 경험치 애니메이션
+                var plusExpTextTask = DOTween.To(() => previousRemainingExp, x => previousRemainingExp = x, remainingExp, fillDuration)
+                    .OnUpdate(() => plusExpText.text = $"+ {previousRemainingExp:N0}")
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(true)
+                    .AsyncWaitForCompletion()
+                    .AsUniTask();
+
+                // 현재 경험치 애니메이션
+                var textTask = DOTween.To(() => currentDisplayExp, x => currentDisplayExp = x, targetDisplayExp, fillDuration)
+                    .OnUpdate(() => expText.text = $"{currentDisplayExp} / {maxDisplayExp}")
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(true)
+                    .AsyncWaitForCompletion()
+                    .AsUniTask();
+
+                await UniTask.WhenAll(sliderTask, plusExpTextTask, textTask);
+
+                currentDisplayExp = targetDisplayExp;
+                expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
+            }
         }
-        resultExpSlider.value = currentDisplayExp; // 최종값 보정
-        expText.text = $"{currentDisplayExp} / {maxDisplayExp}";
+    }
+
+    // 총 몇 번의 레벨업이 발생하는지 미리 계산하는 함수
+    private int CalculateTotalLevelUps(long startExp, long gainedExp, long maxExp, long currentLevel)
+    {
+        long exp = startExp + gainedExp;
+        long max = maxExp;
+        int levelCount = 0;
+
+        while (exp >= max)
+        {
+            exp -= max;
+            currentLevel++;
+            levelCount++;
+            max = (long)(3 + Mathf.Pow(currentLevel, 1.5f) * 0.5f);
+        }
+        return levelCount;
     }
 
     public void ShowBattleUI(PlayerData player, MonsterData monster, int monsterMaxHP)

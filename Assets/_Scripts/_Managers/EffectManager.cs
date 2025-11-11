@@ -1,5 +1,4 @@
 using UnityEngine;
-using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 
 public class EffectManager : MonoBehaviour
@@ -52,29 +51,33 @@ public class EffectManager : MonoBehaviour
         }
     }
 
-    public void ShowDamageText(Vector3 position, int damage)
+    public void ShowDamageText(string effectName, int damage, Transform parent)
     {
         // "DamageText"라는 이름으로 DB에 등록된 프리팹을 풀에서 가져온다.
-        GameObject textGO = GetFromPool("DamageText");
+        GameObject textGO = GetFromPool(effectName);
         if (textGO == null) return;
 
-        // 캔버스 위에 배치
-        Transform canvasTransform = UIManager.Instance.GetBattleCanvasTransform();
-        textGO.transform.SetParent(canvasTransform);
+        textGO.transform.SetParent(parent);
         textGO.transform.localScale = Vector3.one;
         textGO.SetActive(true);
+
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        if (textRect != null)
+        {
+            textRect.anchoredPosition = Vector2.zero; // 부모 패널의 (0,0) 위치에 고정
+        }
 
         // DamageText 스크립트를 찾아 Show 함수를 호출
         DamageText textScript = textGO.GetComponent<DamageText>();
         if (textScript != null)
         {
-            textScript.Show(damage, position);
+            textScript.Show(damage, effectName);
         }
         else
         {
             // DamageText 스크립트가 프리팹에 없는 경우,
             // 즉시 풀에 반환하여 무한 생성을 방지
-            ReturnToPool(textGO, "DamageText");
+            ReturnToPool(textGO, effectName);
         }
     }
 
