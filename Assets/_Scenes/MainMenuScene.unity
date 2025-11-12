@@ -224,7 +224,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6157251999946120606, guid: b6b0b46d12976dd42b0bdd52899a954d, type: 3}
       propertyPath: startingBP
-      value: 5
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 6157251999946120606, guid: b6b0b46d12976dd42b0bdd52899a954d, type: 3}
       propertyPath: _itemDatabase

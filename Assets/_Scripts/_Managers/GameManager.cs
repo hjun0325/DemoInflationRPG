@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
 
     // --- BP ---
     public int currentBP { get; private set; }
-    [SerializeField] private int startingBP = 10;
+    [SerializeField] private int startingBP = 30;
 
     // --- EncounterGauge ---
     private float encounterCurrentGauge;

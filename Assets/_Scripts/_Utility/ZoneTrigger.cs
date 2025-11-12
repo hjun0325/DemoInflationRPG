@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(LineRenderer))]
 public class ZoneTrigger : MonoBehaviour
 {
@@ -19,7 +19,7 @@ public class ZoneTrigger : MonoBehaviour
         SetupLevelText();
     }
 
-    private void OnTriggerEnter(Collider collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
         {
@@ -30,7 +30,7 @@ public class ZoneTrigger : MonoBehaviour
 
     private void SetupBorder()
     {
-        BoxCollider collider = GetComponent<BoxCollider>();
+        BoxCollider2D collider = GetComponent<BoxCollider2D>();
         lineRenderer = GetComponent<LineRenderer>();
 
         Vector3 size = collider.size;
@@ -61,13 +61,13 @@ public class ZoneTrigger : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        BoxCollider collider = GetComponent<BoxCollider>();
+        BoxCollider2D collider = GetComponent<BoxCollider2D>();
 
         Gizmos.color = Color.black;
 
         // Collider의 크기와 동일한 와이어 사각형을 그림
-        Vector3 center = 
-            transform.position + new Vector3(collider.center.x, collider.center.y, 0);
+        Vector3 center =
+            transform.position + new Vector3(collider.offset.x, collider.offset.y, 0);
         Gizmos.DrawWireCube(center, collider.size);
     }
 
