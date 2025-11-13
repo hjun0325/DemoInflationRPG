@@ -1,3 +1,3 @@
-# DemoInflationRPG
-inflationRPG (모작)
+# Eternal Run
+
 개발 중
