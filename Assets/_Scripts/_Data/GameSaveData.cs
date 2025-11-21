@@ -37,4 +37,6 @@ public class SessionData
 
     public float playerPosX;
     public float playerPosY;
+
+    public bool isBossDefeated = false;
 }

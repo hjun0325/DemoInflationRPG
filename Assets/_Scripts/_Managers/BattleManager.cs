@@ -41,10 +41,10 @@ public class BattleManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    public void StartBattle()
+    public void StartBattle(MonsterData specificMonster = null)
     {
-        // UniTask를 시작한다. Forget()은 결과값을 기다리지 않을 때 사용.
-        BattleRoutineAsync().Forget();
+        // UniTask 시작. Forget()은 결과값을 기다리지 않을 때 사용.
+        BattleRoutineAsync(specificMonster).Forget();
     }
 
     // UIManager가 결과 창 닫기 신호를 보내면 호출될 함수
@@ -54,17 +54,25 @@ public class BattleManager : MonoBehaviour
         resultCompletionSource?.TrySetResult(true);
     }
 
-    private async UniTask BattleRoutineAsync()
+    private async UniTask BattleRoutineAsync(MonsterData specificMonster)
     {
         await UniTask.SwitchToMainThread();
 
         // -- 전투 준비 단계 --
         playerData = FindAnyObjectByType<PlayerData>();
-        // TODO: MapManager로부터 실제 몬스터 데이터 받아와 스탯 설정
-        currentMonsterData = MapManager.Instance.GetRandomMonsterFromZone();
+
+        if (specificMonster != null)
+        {
+            // 보스전: 지정된 몬스터 데이터 사용
+            currentMonsterData = specificMonster;
+        }
+        else
+        {
+            // 일반전: 현재 구역에서 랜덤 소환 (기존 로직)
+            currentMonsterData = MapManager.Instance.GetRandomMonsterFromZone();
+        }
 
         // [플레이어 최종 스탯 계산]
-        // TODO: 장비 보너스 합산
         playerFinalATK = playerData.TotalAtk;
         playerFinalDEF = playerData.TotalDef;
         playerFinalAGI = playerData.TotalAgi;
@@ -120,6 +128,11 @@ public class BattleManager : MonoBehaviour
             UIManager.Instance.HideBattleUI();
             UIManager.Instance.ShowResultUI();
 
+            if (specificMonster != null)
+            {
+                GameManager.Instance.BossDefeated();
+            }
+
             // UI 연출 종료 대기.
             await UIManager.Instance.PlayRewardAnimationAsync(startMoney, result.gainedGold, startExp, result.gainedExp, maxExp, startLevel);
 
@@ -141,7 +154,6 @@ public class BattleManager : MonoBehaviour
     {
         await UniTask.SwitchToMainThread();
 
-        Debug.Log("플레이어 턴 시작");
         while (true)
         {
             // 데미지 계산
@@ -168,8 +180,6 @@ public class BattleManager : MonoBehaviour
 
             string damageTextEffect = isCritical ? "CriticalDamageText" : "DamageText";
             EffectManager.Instance.ShowDamageText(damageTextEffect, (int)finalDamage, monsterDamagePanel);
-            //EffectManager.Instance.ShowDamageText(monsterImageTransform.position, (int)damage);
-            Debug.Log($"플레이어가 {finalDamage} 피해를 입혔습니다!");
 
             await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
             if (monsterCurrentHP <= 0) break;
@@ -186,8 +196,6 @@ public class BattleManager : MonoBehaviour
     {
         await UniTask.SwitchToMainThread();
 
-        Debug.Log("몬스터 턴 시작");
-
         float reductionRate = 0.3f * (playerEffectiveDEF / (float)(playerEffectiveDEF + monsterEffectiveATK));
         long damage = (long)(monsterEffectiveATK * (1 - reductionRate));
         damage = (long)Mathf.Max(1, damage);
@@ -199,13 +207,12 @@ public class BattleManager : MonoBehaviour
         UIManager.Instance.UpdatePlayerHP(playerData.currentHp, playerData.TotalMaxHp);
 
         EffectManager.Instance.PlayEffect(
-            "MonsterAttack",              // 1. DB에 등록한 이펙트 이름
-            playerAttackEffectTransform.position,                    // 2. 플레이어 이미지의 현재 위치
-            playerAttackEffectTransform);        // 3. 이펙트가 생성될 부모 캔버스
+            "MonsterAttack",              // DB에 등록한 이펙트 이름
+            playerAttackEffectTransform.position,                    // 플레이어 이미지의 현재 위치
+            playerAttackEffectTransform);        // 이펙트가 생성될 부모 캔버스
         SoundManager.Instance.PlaySFX("MonsterAttack1");
 
         EffectManager.Instance.ShowDamageText("DamageText", (int)finalDamage, playerDamagePanel);
-        Debug.Log($"몬스터가 {finalDamage} 피해를 입혔습니다!");
         await UniTask.Delay(500, DelayType.UnscaledDeltaTime); // 타격 연출 시간.
     }
 }

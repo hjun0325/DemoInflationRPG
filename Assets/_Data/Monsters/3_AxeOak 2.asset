@@ -15,9 +15,9 @@ MonoBehaviour:
   monsterID: 8
   monsterName: AxeOak2
   monsterIcon: {fileID: 21300000, guid: 69ecee75de3496f4cb72579f6bca547f, type: 3}
-  hp: 1950
-  atk: 310
-  def: 125
-  agi: 20
-  dropExp: 180
-  dropGold: 320
+  hp: 2100
+  atk: 320
+  def: 155
+  agi: 30
+  dropExp: 3150
+  dropGold: 630

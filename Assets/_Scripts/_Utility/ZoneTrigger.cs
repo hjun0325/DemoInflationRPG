@@ -28,6 +28,18 @@ public class ZoneTrigger : MonoBehaviour
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        BoxCollider2D collider = GetComponent<BoxCollider2D>();
+
+        Gizmos.color = Color.black;
+
+        // Collider의 크기와 동일한 와이어 사각형을 그림
+        Vector3 center =
+            transform.position + new Vector3(collider.offset.x, collider.offset.y, 0);
+        Gizmos.DrawWireCube(center, collider.size);
+    }
+
     private void SetupBorder()
     {
         BoxCollider2D collider = GetComponent<BoxCollider2D>();
@@ -46,9 +58,8 @@ public class ZoneTrigger : MonoBehaviour
         lineRenderer.startWidth = 0.08f;
         lineRenderer.endWidth = 0.08f;
         lineRenderer.useWorldSpace = false; // 오브젝트를 따라 움직이도록 설정
-        lineRenderer.material = new Material(Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply"));
-        lineRenderer.startColor = Color.black;
-        lineRenderer.endColor = Color.black;
+        lineRenderer.startColor = safeColor;
+        lineRenderer.endColor = safeColor;
     }
 
     private void SetupLevelText()
@@ -59,26 +70,25 @@ public class ZoneTrigger : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
-    {
-        BoxCollider2D collider = GetComponent<BoxCollider2D>();
-
-        Gizmos.color = Color.black;
-
-        // Collider의 크기와 동일한 와이어 사각형을 그림
-        Vector3 center =
-            transform.position + new Vector3(collider.offset.x, collider.offset.y, 0);
-        Gizmos.DrawWireCube(center, collider.size);
-    }
-
-    private void UpdateBorderColor(int playerLevel)
+    public void UpdateBorderColor(int playerLevel)
     {
         if (zoneData == null) return;
+
+        // 적정 레벨과 플레이어 레벨의 차이를 계산
         int levelDifference = zoneData.recommendedLevel - playerLevel;
 
-        if (levelDifference > 100) SetBorderColor(dangerColor);
-        else if (levelDifference > 50) SetBorderColor(cautionColor);
-        else SetBorderColor(safeColor);
+        if (levelDifference > 10) // 적정 레벨이 10 이상 높으면
+        {
+            SetBorderColor(dangerColor); // 위험 (빨간색)
+        }
+        else if (levelDifference > 3) // 적정 레벨이 3~10 높으면
+        {
+            SetBorderColor(cautionColor); // 주의 (노란색)
+        }
+        else // 플레이어 레벨이 적정 레벨보다 같거나 높으면
+        {
+            SetBorderColor(safeColor); // 안전 (파란색)
+        }
     }
 
     private void SetBorderColor(Color color)

@@ -38,13 +38,16 @@ public class SoundManager : MonoBehaviour
                 bgmPlayer.outputAudioMixerGroup = mainMixer.FindMatchingGroups("BGM")[0];
                 sfxPlayer.outputAudioMixerGroup = mainMixer.FindMatchingGroups("SFX")[0];
             }
-
-            LoadVolumeSettings();
         }
         else
         {
             Destroy(gameObject);
         }
+    }
+
+    private void Start()
+    {
+        LoadVolumeSettings();
     }
 
     private void LoadVolumeSettings()
@@ -66,14 +69,18 @@ public class SoundManager : MonoBehaviour
         mainMixer.SetFloat(BGM_VOLUME_PARAM, dbVolume);
         // 변경된 값을 기기에 저장
         PlayerPrefs.SetFloat(BGM_VOLUME_PARAM, dbVolume);
+
+        PlayerPrefs.Save();
     }
 
     public void SetSFXVolume(float volume)
     {
         float dbVolume = (volume <= -20f) ? -80f : volume;
-
+        Debug.Log(dbVolume);
         mainMixer.SetFloat(SFX_VOLUME_PARAM, dbVolume);
         PlayerPrefs.SetFloat(SFX_VOLUME_PARAM, dbVolume);
+
+        PlayerPrefs.Save();
     }
 
     public void PlayBGM(string bgmName)

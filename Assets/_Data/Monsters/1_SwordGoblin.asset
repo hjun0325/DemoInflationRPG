@@ -16,8 +16,8 @@ MonoBehaviour:
   monsterName: SwordGoblin1
   monsterIcon: {fileID: 21300000, guid: e32924b1168cbe74e9608bd80ba8e891, type: 3}
   hp: 15
-  atk: 5
-  def: 2
+  atk: 4
+  def: 0
   agi: 3
-  dropExp: 150
-  dropGold: 100000
+  dropExp: 250
+  dropGold: 180

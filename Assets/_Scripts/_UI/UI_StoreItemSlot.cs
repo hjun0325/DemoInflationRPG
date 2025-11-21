@@ -5,6 +5,7 @@ using TMPro;
 public class UI_StoreItemSlot : MonoBehaviour
 {
     [SerializeField] private Image itemIcon;
+    [SerializeField] private Image equippedIcon;
     [SerializeField] private Button slotButton;
     [SerializeField] private TMP_Text itemNumberText;
     [SerializeField] private TMP_Text itemNameText;
@@ -52,8 +53,20 @@ public class UI_StoreItemSlot : MonoBehaviour
     {
         if (itemData == null) return;
 
-        bool isOwned = DataManager.Instance.saveData.ownedItemIDs.Contains(itemData.itemID);
+        GameSaveData saveData = DataManager.Instance.saveData;
+
+        bool isOwned = saveData.ownedItemIDs.Contains(itemData.itemID);
         countText.text = isOwned ? "x1" : "x0";
+
+        bool isEquipped = false;
+        if(isOwned)
+        {
+            isEquipped = (itemData.itemID == saveData.equippedWeaponID) ||
+                         (itemData.itemID == saveData.equippedArmorID) ||
+                         (itemData.itemID == saveData.equippedAccessoryID1) ||
+                         (itemData.itemID == saveData.equippedAccessoryID2);
+        }
+        equippedIcon.gameObject.SetActive(isEquipped);
     }
 
     private void OnSlotClicked()

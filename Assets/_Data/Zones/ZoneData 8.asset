@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ZoneData 8
   m_EditorClassIdentifier: 
   ZoneName: 8
-  recommendedLevel: 244
+  recommendedLevel: 250
   appearingMonsters:
   - {fileID: 11400000, guid: cd16088bf9656b24ead79772fc182ca8, type: 2}
   - {fileID: 11400000, guid: 799dcf163151aad4a903a26b780433f8, type: 2}

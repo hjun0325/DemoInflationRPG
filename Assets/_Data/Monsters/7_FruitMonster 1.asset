@@ -16,8 +16,8 @@ MonoBehaviour:
   monsterName: FruitMonster1
   monsterIcon: {fileID: 21300000, guid: 9efc7c91f1e915442a5eeca8b8904408, type: 3}
   hp: 6400
-  atk: 880
-  def: 350
+  atk: 1000
+  def: 370
   agi: 100
-  dropExp: 180
-  dropGold: 320
+  dropExp: 30000
+  dropGold: 2600

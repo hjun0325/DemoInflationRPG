@@ -15,9 +15,9 @@ MonoBehaviour:
   monsterID: 6
   monsterName: GunGoblin3
   monsterIcon: {fileID: 21300000, guid: 555bf2826d054ec488012f55937bddc0, type: 3}
-  hp: 600
-  atk: 45
-  def: 25
-  agi: 7
-  dropExp: 5000
-  dropGold: 320
+  hp: 700
+  atk: 55
+  def: 35
+  agi: 10
+  dropExp: 2000
+  dropGold: 400

@@ -174,8 +174,8 @@ public class PlayerData : MonoBehaviour
     // 골드 추가 함수.
     public void AddGold(long amount)
     {
-        if (amount <= 0) return;
         currentGold += amount;
+        OnPlayerDataUpdated?.Invoke();
         UIManager.Instance.UpdateMoney(currentGold);
     }
 
@@ -202,7 +202,8 @@ public class PlayerData : MonoBehaviour
         maxExp = CalculateMaxExpForLevel(level);
 
         unspentStatPoints += 4;
-        
+        OnPlayerDataUpdated?.Invoke();
+
     }
 
     // 특정 레벨에 필요한 총 경험치를 계산하는 함수.

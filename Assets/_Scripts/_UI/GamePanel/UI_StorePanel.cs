@@ -1,9 +1,11 @@
-using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
+using UnityEngine;
 
 public class UI_StorePanel : UI_Popup
 {
+    [SerializeField] private TMP_Text currentGoldText;
     [SerializeField] private ItemType storeType;
     [SerializeField] private ItemDatabase itemDatabase;
     [SerializeField] private UI_PurchasePanel purchasePanel;
@@ -19,10 +21,37 @@ public class UI_StorePanel : UI_Popup
         InitializeSlots();
     }
 
+    private void OnEnable()
+    {
+        // 함수 구독
+        PlayerData.OnPlayerDataUpdated += UpdateGoldText;
+
+        // 활성화되는 즉시 현재 골드로 갱신
+        UpdateGoldText();
+    }
+
+    private void OnDisable()
+    {
+        PlayerData.OnPlayerDataUpdated -= UpdateGoldText;
+    }
+
     public override void Show()
     {
         base.Show();
         RefreshSlots();
+        UpdateGoldText();
+    }
+
+    private void UpdateGoldText()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.PlayerData != null)
+        {
+            currentGoldText.text = $"Money {GameManager.Instance.PlayerData.currentGold:N0}";
+        }
+        else
+        {
+            currentGoldText.text = "Money 0";
+        }
     }
 
     private void InitializeSlots()
@@ -48,46 +77,6 @@ public class UI_StorePanel : UI_Popup
             slot.Refresh();
         }
     }
-
-    /*private void UpdatePanel()
-    {
-        // 아이템 데이터베이스에서 각 상점(storeType)에 맞는 아이템들만 가져온다.
-        var itemsToShow = 
-            itemDatabase.AllItems.Where(item => item.itemType == storeType).ToList();
-        // DataManager에서 현재 플레이어가 소유한 아이템 ID 목록을 가져온다.
-        var ownedItemIDs = DataManager.Instance.saveData.ownedItemIDs;
-
-        for(int i = 0; i<itemSlots.Count; i++)
-        {
-            if (i < itemsToShow.Count)
-            {
-                ItemData currentItem = itemsToShow[i];
-                StoreSlotUI currentSlot = itemSlots[i];
-                Debug.Log(currentItem.itemIcon);
-                // 슬롯 UI 채우기
-                currentSlot.itemIcon.sprite = currentItem.itemIcon;
-                currentSlot.itemNameText.text = currentItem.itemName;
-                currentSlot.priceText.text = currentItem.price.ToString("N0");
-
-                // 아이템 타입에 따라 다른 스탯 텍스트를 표시.
-                if(currentItem is WeaponData weapon)
-                {
-                    currentSlot.addStatText.text = $"ATK +{weapon.addAtkBonus}";
-                    currentSlot.mulStatText.text = $"ATK x{weapon.mulAtkBonus}";
-                }
-                else if (currentItem is ArmorData armor)
-                {
-                    currentSlot.addStatText.text = $"DEF +{armor.addDefBonus}";
-                    currentSlot.mulStatText.text = $"DEF x{armor.mulDefBonus}";
-                }
-                else if (currentItem is AccessoryData accessory)
-                {
-                    
-                }
-            }
-        }
-    }*/
-
     public void OnClick_Item(ItemData itemData)
     {
         Debug.Log($"{itemData.itemName} 클릭됨!");

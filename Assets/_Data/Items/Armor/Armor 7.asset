@@ -16,6 +16,6 @@ MonoBehaviour:
   itemName: Dragonscale Armor
   itemType: 1
   itemIcon: {fileID: 21300000, guid: 4ad901c805503e14cbc99c2471f29d31, type: 3}
-  price: 230000
+  price: 132000
   addDefBonus: 700
   mulDefBonus: 210

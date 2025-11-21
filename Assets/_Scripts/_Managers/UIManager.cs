@@ -125,9 +125,8 @@ public class UIManager : MonoBehaviour
         // 경험치 바가 차는 시간
         float fillDuration = 0.05f;
 
-        // 레벨업 연출 시간 단축 변수
-        bool showAllLevelUps = (totalLevelsGained < 7);
-        int levelUpBatchCounter = 0;
+        // 현재 레벨업 된 횟수
+        int currentLevelStep = 0;
 
         // 경험치 연출
         while (remainingExp > 0)
@@ -140,34 +139,45 @@ public class UIManager : MonoBehaviour
                 long previousRemainingExp = remainingExp;
                 remainingExp -= expToLevelUp;
 
-                // 슬라이더 애니메이션
-                var sliderTask = resultExpSlider.DOValue(maxDisplayExp, fillDuration)
-                    .SetEase(Ease.Linear)
-                    .SetUpdate(true)
-                    .AsyncWaitForCompletion()
-                    .AsUniTask();
+                int nextStep = currentLevelStep + 1;
 
-                // 보상 경험치 애니메이션
-                var plusExpTextTask = DOTween.To(() => previousRemainingExp, x => previousRemainingExp = x, remainingExp, fillDuration)
-                    .OnUpdate(() => plusExpText.text = $"+ {previousRemainingExp:N0}")
-                    .SetEase(Ease.Linear)
-                    .SetUpdate(true)
-                    .AsyncWaitForCompletion()
-                    .AsUniTask();
+                bool isPhase1 = (nextStep <= 7); // 1~7렙: 매번 연출
+                bool isPhase2 = (nextStep > 7) && ((nextStep - 8) % 5 == 0); // 5배수
+                bool isFinalLevel = (currentDisplayLevel + 1 == finalLevel);
 
-                // 현재 경험치 애니메이션
-                var textTask = DOTween.To(() => currentDisplayExp, x => currentDisplayExp = x, maxDisplayExp, fillDuration)
-                    .OnUpdate(() => expText.text = $"{currentDisplayExp} / {maxDisplayExp}")
-                    .SetEase(Ease.Linear)
-                    .SetUpdate(true)
-                    .AsyncWaitForCompletion()
-                    .AsUniTask();
+                bool showAnimation = isPhase1 || isPhase2 || isFinalLevel;
 
-                await UniTask.WhenAll(sliderTask, plusExpTextTask, textTask);
+                if (showAnimation)
+                {
+                    // 슬라이더 애니메이션
+                    var sliderTask = resultExpSlider.DOValue(maxDisplayExp, fillDuration)
+                        .SetEase(Ease.Linear)
+                        .SetUpdate(true)
+                        .AsyncWaitForCompletion()
+                        .AsUniTask();
+
+                    // 보상 경험치 애니메이션
+                    var plusExpTextTask = DOTween.To(() => previousRemainingExp, x => previousRemainingExp = x, remainingExp, fillDuration)
+                        .OnUpdate(() => plusExpText.text = $"+ {previousRemainingExp:N0}")
+                        .SetEase(Ease.Linear)
+                        .SetUpdate(true)
+                        .AsyncWaitForCompletion()
+                        .AsUniTask();
+
+                    // 현재 경험치 애니메이션
+                    var textTask = DOTween.To(() => currentDisplayExp, x => currentDisplayExp = x, maxDisplayExp, fillDuration)
+                        .OnUpdate(() => expText.text = $"{currentDisplayExp} / {maxDisplayExp}")
+                        .SetEase(Ease.Linear)
+                        .SetUpdate(true)
+                        .AsyncWaitForCompletion()
+                        .AsUniTask();
+
+                    await UniTask.WhenAll(sliderTask, plusExpTextTask, textTask);
+                }
 
                 // 레벨업 데이터 처리
                 currentDisplayLevel++;
-                levelUpBatchCounter++;
+                currentLevelStep++;
                 currentDisplayExp = 0;
                 maxDisplayExp = (long)(3 + Mathf.Pow(currentDisplayLevel, 1.5f) * 0.5f);
 
@@ -176,10 +186,9 @@ public class UIManager : MonoBehaviour
                 resultExpSlider.value = 0;
                 resultExpSlider.maxValue = maxDisplayExp;
 
-                // 7렙 미만이거나, 5의 배수 레벨업이거나, 마지막 레벨업이면 연출 실행
-                if (showAllLevelUps || (levelUpBatchCounter >= 5) || (currentDisplayLevel == finalLevel))
+                // 8렙 미만이거나, 5의 배수 레벨업이거나, 마지막 레벨업이면 연출 실행
+                if (isPhase1 || isPhase2 || isFinalLevel)
                 {
-                    levelUpBatchCounter = 0; // 카운터 초기화
                     SoundManager.Instance.PlaySFX("LevelUp");
                 }
             }

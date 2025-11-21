@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 public enum GameState
 {
@@ -30,6 +31,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float encounterMaxGauge = 100f;
     [SerializeField] private float increaseRate = 20f;
 
+    public event Action OnBossClear;
+
     private void Awake()
     {
         if (Instance == null)
@@ -42,6 +45,11 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+    // 에디터가 아닐 때(실제 빌드된 게임일 때)만 로그를 꺼버림
+    #if !UNITY_EDITOR
+        Debug.unityLogger.logEnabled = false;
+    #endif
     }
 
     private void Update()
@@ -105,7 +113,6 @@ public class GameManager : MonoBehaviour
     public void ChangeGameState(GameState newState)
     {
         CurrentState = newState;
-        Debug.Log($"게임 상태 변경 -> {newState}");
 
         switch (CurrentState)
         {
@@ -119,7 +126,6 @@ public class GameManager : MonoBehaviour
                 SoundManager.Instance.PlayBGM("Battle");
                 UIManager.Instance.JoystickUI.SetActive(false);
                 Time.timeScale = 0f;
-                BattleManager.Instance.StartBattle();
                 break;
 
             case GameState.Menu:
@@ -134,18 +140,16 @@ public class GameManager : MonoBehaviour
     {
         if (PlayerData.currentGold >= itemToBuy.price)
         {
-            PlayerData.currentGold -= itemToBuy.price;
+            PlayerData.AddGold(-itemToBuy.price);
 
             DataManager.Instance.saveData.ownedItemIDs.Add(itemToBuy.itemID);
             DataManager.Instance.UpdateSaveData();
             UIManager.Instance.UpdateMoney(PlayerData.currentGold);
 
-            Debug.Log($"{itemToBuy.itemName} 구매 완료!");
             return true;
         }
         else
         {
-            Debug.Log("골드가 부족합니다!");
             return false;
         }
     }
@@ -235,18 +239,28 @@ public class GameManager : MonoBehaviour
     {
         if (encounterCurrentGauge >= encounterMaxGauge)
         {
-            Debug.Log("게이지 100%! 몬스터와 전투!");
             StartEncounter(); // 전투 시작.
             return;
         }
 
         // 게이지가 높을수록 만날 확률 증가.
-        float encounterChance = encounterCurrentGauge / encounterMaxGauge;
+        float encounterChance = 0f;
+        float gaugeRatio = encounterCurrentGauge / encounterMaxGauge;
+
+        if (gaugeRatio <= 0.5f)
+        {
+            // [게이지 절반 이하: 0 ~ 40% 확률]
+            encounterChance = Mathf.Lerp(0f, 0.4f, gaugeRatio / 0.5f);
+        }
+        else
+        {
+            // [게이지 절반 이상: 40 ~ 100% 확률]
+            encounterChance = Mathf.Lerp(0.4f, 1.0f, (gaugeRatio - 0.5f) / 0.5f);
+        }
 
         // 매 프레임 확률을 체크. (deltaTime으로 보정).
-        if (Random.Range(0f, 1f) < encounterChance * Time.deltaTime)
+        if (UnityEngine.Random.Range(0f, 1f) < encounterChance * Time.deltaTime)
         {
-            Debug.Log("몬스터와 전투!");
             StartEncounter(); // 전투 시작.
         }
     }
@@ -258,21 +272,17 @@ public class GameManager : MonoBehaviour
 
         // 전투 시작 로직 호출.
         ChangeGameState(GameState.Battle);
+        BattleManager.Instance.StartBattle(null);
     }
 
     // 전투 종료.
     public void EndBattle(BattleResult result)
     {
-        Debug.Log("전투 종료!");
-
         // BP 차감.
         currentBP--;
 
         if (result.playerWin)
         {
-            Debug.Log("플레이어가 이겼습니다!");
-            Debug.Log($"보상 적용: 경험치 {result.gainedExp}, 골드 {result.gainedGold}");
-
             PlayerData.HealToFull();
             PlayerData.AddGold(result.gainedGold);
             PlayerData.AddExperience(result.gainedExp);
@@ -281,7 +291,6 @@ public class GameManager : MonoBehaviour
         {
             int penaltyCost = 2;
             currentBP -= penaltyCost;
-            Debug.Log($"패배하여 BP {penaltyCost}를 잃었습니다!");
 
             PlayerData.HealToFull();
         }
@@ -303,9 +312,6 @@ public class GameManager : MonoBehaviour
 
     public void EndRun()
     {
-        Debug.Log("게임 오버! BP를 모두 소진했습니다.");
-        // TODO: PlayerData의 장비 목록을 DataManager의 ownedItemIDs에 추가
-
         ChangeGameState(GameState.GameOver);
 
         SoundManager.Instance.PlayBGM("GameOver");
@@ -315,5 +321,16 @@ public class GameManager : MonoBehaviour
         // 세션 데이터 삭제 및 영구 데이터 저장.
         DataManager.Instance.ClearSessionData();
         DataManager.Instance.SaveGame();
+    }
+
+    public void BossDefeated()
+    {
+        var session = DataManager.Instance.saveData.currentSessionData;
+        if (session != null)
+        {
+            session.isBossDefeated = true;
+        }
+        DataManager.Instance.SaveGame();
+        OnBossClear?.Invoke();
     }
 }

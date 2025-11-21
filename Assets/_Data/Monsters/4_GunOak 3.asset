@@ -15,9 +15,9 @@ MonoBehaviour:
   monsterID: 12
   monsterName: GunOak2
   monsterIcon: {fileID: 21300000, guid: b99f19bc8755d0141831a7f9c7729da9, type: 3}
-  hp: 2700
+  hp: 2900
   atk: 440
-  def: 170
-  agi: 35
-  dropExp: 180
-  dropGold: 320
+  def: 180
+  agi: 40
+  dropExp: 6400
+  dropGold: 860

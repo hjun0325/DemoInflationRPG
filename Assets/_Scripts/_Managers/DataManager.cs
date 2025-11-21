@@ -31,12 +31,10 @@ public class DataManager : MonoBehaviour
         {
             string json = File.ReadAllText(savePath);
             saveData = JsonUtility.FromJson<GameSaveData>(json);
-            Debug.Log("세이브 데이터 로드 완료!");
         }
         else
         {
             saveData = new GameSaveData();
-            Debug.Log("새로운 세이브 데이터 생성!");
         }
     }
 
@@ -44,7 +42,6 @@ public class DataManager : MonoBehaviour
     {
         string json = JsonUtility.ToJson(saveData, true);
         File.WriteAllText(savePath, json);
-        Debug.Log($"게임 저장 완료: {savePath}");
     }
 
     public void UpdateSaveData()

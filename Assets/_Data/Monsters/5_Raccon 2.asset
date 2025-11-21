@@ -19,5 +19,5 @@ MonoBehaviour:
   atk: 620
   def: 240
   agi: 50
-  dropExp: 180
-  dropGold: 320
+  dropExp: 10500
+  dropGold: 1400

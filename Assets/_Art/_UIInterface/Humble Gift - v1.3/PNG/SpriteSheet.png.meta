@@ -468,7 +468,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 1024
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -1402,38 +1402,16 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpriteSheet_40
-      rect:
-        serializedVersion: 2
-        x: 626
-        y: 1916
-        width: 7
-        height: 34
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cc7ac97fbfc0a2a50800000000000000
-      internalID: 6497019688765925324
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: SpriteSheet_41
       rect:
         serializedVersion: 2
-        x: 634
-        y: 1916
-        width: 34
-        height: 34
+        x: 626
+        y: 1906
+        width: 42
+        height: 44
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 10, y: 10, z: 10, w: 10}
       customData: 
       outline: []
       physicsShape: []
@@ -1441,50 +1419,6 @@ TextureImporter:
       bones: []
       spriteID: 8ca83e6ea64a46300800000000000000
       internalID: 244501058832009928
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: SpriteSheet_42
-      rect:
-        serializedVersion: 2
-        x: 626
-        y: 1905
-        width: 7
-        height: 7
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8d1b4ead6c64f2460800000000000000
-      internalID: 7219066547588084184
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: SpriteSheet_43
-      rect:
-        serializedVersion: 2
-        x: 634
-        y: 1905
-        width: 34
-        height: 7
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a0a5366e00e90fae0800000000000000
-      internalID: -1517539347721397750
       vertices: []
       indices: 
       edges: []
